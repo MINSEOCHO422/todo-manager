@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 관리 앱</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 20px; color: #333; }
+
+    /* 입력 폼 */
+    .form-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .form-box input, .form-box select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .form-box button { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }
+    .form-box button:hover { background: #45a049; }
+
+    /* 필터 */
+    .filter-box { display: flex; gap: 8px; margin-bottom: 16px; }
+    .filter-box button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; }
+    .filter-box button.active { background: #4CAF50; color: white; border-color: #4CAF50; }
+
+    /* 할일 카드 */
+    .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; }
+    .todo-item.completed { opacity: 0.6; }
+    .todo-item.completed .todo-title { text-decoration: line-through; }
+    .todo-title { flex: 1; font-size: 15px; }
+    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .badge.high { background: #ffebee; color: #c62828; }
+    .badge.mid { background: #fff3e0; color: #e65100; }
+    .badge.low { background: #e8f5e9; color: #2e7d32; }
+    .due-date { font-size: 12px; color: #888; }
+    .btn-delete { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+    .empty { text-align: center; color: #aaa; padding: 40px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📝 할 일 관리</h1>
+
+  <!-- 입력 폼 -->
+  <div class="form-box">
+    <input type="text" id="todoInput" placeholder="할 일을 입력하세요">
+    <select id="prioritySelect">
+      <option value="high">🔴 높음</option>
+      <option value="mid" selected>🟡 중간</option>
+      <option value="low">🟢 낮음</option>
+    </select>
+    <input type="date" id="dueDateInput">
+    <button onclick="TodoController.addTodo()">+ 추가하기</button>
+  </div>
+
+  <!-- 필터 -->
+  <div class="filter-box">
+    <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
+    <button onclick="TodoController.filterTodos('active', this)">진행중</button>
+    <button onclick="TodoController.filterTodos('completed', this)">완료</button>
+  </div>
+
+  <!-- 할일 목록 -->
+  <div id="todoList"></div>
+</div>
+
+<script>
+  // ── Model ──────────────────────────────
+  const TodoModel = {
+    todos: JSON.parse(localStorage.getItem('todos') || '[]'),
+
+    save() {
+      localStorage.setItem('todos', JSON.stringify(this.todos));
+    },
+
+    add(title, priority, dueDate) {
+      const todo = {
+        id: Date.now(),
+        title,
+        priority,
+        dueDate,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      this.todos.push(todo);
+      this.save();
+      return todo;
+    },
+
+    delete(id) {
+      this.todos = this.todos.filter(t => t.id !== id);
+      this.save();
+    },
+
+    toggle(id) {
+      const todo = this.todos.find(t => t.id === id);
+      if (todo) { todo.completed = !todo.completed; this.save(); }
+    },
+
+    filter(type) {
+      if (type === 'active') return this.todos.filter(t => !t.completed);
+      if (type === 'completed') return this.todos.filter(t => t.completed);
+      return this.todos;
+    }
+  };
+
+  // ── View ───────────────────────────────
+  const TodoView = {
+    currentFilter: 'all',
+
+    render() {
+      const list = document.getElementById('todoList');
+      const todos = TodoModel.filter(this.currentFilter);
+
+      if (todos.length === 0) {
+        list.innerHTML = '<div class="empty">할 일이 없어요 🎉</div>';
+        return;
+      }
+
+      list.innerHTML = todos.map(todo => `
+        <div class="todo-item ${todo.completed ? 'completed' : ''}">
+          <input type="checkbox" ${todo.completed ? 'checked' : ''}
+            onchange="TodoController.toggleTodo(${todo.id})">
+          <span class="todo-title">${todo.title}</span>
+          <span class="badge ${todo.priority}">
+            ${todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음'}
+          </span>
+          ${todo.dueDate ? `<span class="due-date">📅 ${todo.dueDate}</span>` : ''}
+          <button class="btn-delete" onclick="TodoController.deleteTodo(${todo.id})">삭제</button>
+        </div>
+      `).join('');
+    }
+  };
+
+  // ── Controller ─────────────────────────
+  const TodoController = {
+    addTodo() {
+      const title = document.getElementById('todoInput').value.trim();
+      if (!title) { alert('할 일을 입력해주세요!'); return; }
+      const priority = document.getElementById('prioritySelect').value;
+      const dueDate = document.getElementById('dueDateInput').value;
+      TodoModel.add(title, priority, dueDate);
+      document.getElementById('todoInput').value = '';
+      TodoView.render();
+    },
+
+    deleteTodo(id) {
+      if (confirm('정말 삭제할까요?')) {
+        TodoModel.delete(id);
+        TodoView.render();
+      }
+    },
+
+    toggleTodo(id) {
+      TodoModel.toggle(id);
+      TodoView.render();
+    },
+
+    filterTodos(type, btn) {
+      document.querySelectorAll('.filter-box button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      TodoView.currentFilter = type;
+      TodoView.render();
+    }
+  };
+
+  // 초기 렌더링
+  TodoView.render();
+</script>
+</body>
+</html>
