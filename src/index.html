@@ -36,8 +36,8 @@
     .sort-box select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
 
     .bulk-box { display: flex; justify-content: flex-end; margin-bottom: 10px; }
-    .btn-bulk-delete { padding: 6px 14px; background: #ff5252; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
-    .btn-bulk-delete:hover { background: #e53935; }
+    .btn-bulk-complete { padding: 6px 14px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; margin-right: 8px; }
+    .btn-bulk-complete:hover { background: #45a049; }
 
     .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .todo-item.completed { opacity: 0.6; }
@@ -115,9 +115,10 @@
     </div>
   </div>
 
-  <div class="bulk-box">
+<div class="bulk-box">
+    <button class="btn-bulk-complete" onclick="TodoController.completeAll()">전체 완료 처리</button>
     <button class="btn-bulk-delete" onclick="TodoController.deleteCompleted()">완료 항목 일괄 삭제</button>
-  </div>
+</div>
 
   <div id="todoList"></div>
 </div>
@@ -305,6 +306,15 @@
     },
 
     deleteCompleted() {
+      const count = TodoModel.todos.filter(t => t.completed).length;
+      if (count === 0) { alert('완료된 항목이 없어요!'); return; }
+      if (confirm(`완료된 항목 ${count}개를 삭제할까요?`)) {
+        TodoModel.deleteCompleted();
+        TodoView.render();
+      }
+    },
+
+       deleteCompleted() {
       const count = TodoModel.todos.filter(t => t.completed).length;
       if (count === 0) { alert('완료된 항목이 없어요!'); return; }
       if (confirm(`완료된 항목 ${count}개를 삭제할까요?`)) {
