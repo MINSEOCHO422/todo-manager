@@ -102,9 +102,10 @@
 
   <div class="control-box">
     <div class="filter-box">
-      <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
-      <button onclick="TodoController.filterTodos('active', this)">진행중</button>
-      <button onclick="TodoController.filterTodos('completed', this)">완료</button>
+    <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
+<button onclick="TodoController.filterTodos('active', this)">진행중</button>
+<button onclick="TodoController.filterTodos('completed', this)">완료</button>
+<button onclick="TodoController.filterTodos('today', this)">📅 오늘</button> 
     </div>
     <div class="sort-box">
       <select onchange="TodoController.sortTodos(this.value)">
@@ -176,11 +177,18 @@
       if (todo) { todo.title = title; todo.priority = priority; todo.dueDate = dueDate; this.save(); }
     },
 
-    filter(type) {
-      if (type === 'active') return this.todos.filter(t => !t.completed);
-      if (type === 'completed') return this.todos.filter(t => t.completed);
-      return this.todos;
-    },
+filter(type) {
+  if (type === 'active') return this.todos.filter(t => !t.completed);
+  if (type === 'completed') return this.todos.filter(t => t.completed);
+  if (type === 'today') {
+    const today = new Date().toDateString();
+    return this.todos.filter(t => {
+      if (!t.dueDate) return false;
+      return new Date(t.dueDate).toDateString() === today;
+    });
+  }
+  return this.todos;
+},
 
     sort(todos, type) {
       const p = { high: 0, mid: 1, low: 2 };
@@ -322,6 +330,16 @@
         TodoView.render();
       }
     },
+
+    completeAll() {
+  const active = TodoModel.todos.filter(t => !t.completed).length;
+  if (active === 0) { alert('모두 완료된 상태예요!'); return; }
+  if (confirm(`미완료 항목 ${active}개를 모두 완료 처리할까요?`)) {
+    TodoModel.todos.forEach(t => t.completed = true);
+    TodoModel.save();
+    TodoView.render();
+  }
+},
 
     toggleTodo(id) {
       TodoModel.toggle(id);
