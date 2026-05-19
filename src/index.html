@@ -1,169 +1,256 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>할 일 관리 앱</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    h1 { text-align: center; margin-bottom: 20px; color: #333; }
-
-    /* 입력 폼 */
-    .form-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .form-box input, .form-box select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-    .form-box button { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }
-    .form-box button:hover { background: #45a049; }
-
-    /* 필터 */
-    .filter-box { display: flex; gap: 8px; margin-bottom: 16px; }
-    .filter-box button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; }
-    .filter-box button.active { background: #4CAF50; color: white; border-color: #4CAF50; }
-
-    /* 할일 카드 */
-    .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; }
-    .todo-item.completed { opacity: 0.6; }
-    .todo-item.completed .todo-title { text-decoration: line-through; }
-    .todo-title { flex: 1; font-size: 15px; }
-    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-    .badge.high { background: #ffebee; color: #c62828; }
-    .badge.mid { background: #fff3e0; color: #e65100; }
-    .badge.low { background: #e8f5e9; color: #2e7d32; }
-    .due-date { font-size: 12px; color: #888; }
-    .btn-delete { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-    .empty { text-align: center; color: #aaa; padding: 40px; }
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.4">
+  <style type="text/css">
+    body {background-color: #f2f2f2}
+    span.s1 {font-kerning: none}
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>📝 할 일 관리</h1>
-
-  <!-- 입력 폼 -->
-  <div class="form-box">
-    <input type="text" id="todoInput" placeholder="할 일을 입력하세요">
-    <select id="prioritySelect">
-      <option value="high">🔴 높음</option>
-      <option value="mid" selected>🟡 중간</option>
-      <option value="low">🟢 낮음</option>
-    </select>
-    <input type="date" id="dueDateInput">
-    <button onclick="TodoController.addTodo()">+ 추가하기</button>
-  </div>
-
-  <!-- 필터 -->
-  <div class="filter-box">
-    <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
-    <button onclick="TodoController.filterTodos('active', this)">진행중</button>
-    <button onclick="TodoController.filterTodos('completed', this)">완료</button>
-  </div>
-
-  <!-- 할일 목록 -->
-  <div id="todoList"></div>
-</div>
-
-<script>
-  // ── Model ──────────────────────────────
-  const TodoModel = {
-    todos: JSON.parse(localStorage.getItem('todos') || '[]'),
-
-    save() {
-      localStorage.setItem('todos', JSON.stringify(this.todos));
-    },
-
-    add(title, priority, dueDate) {
-      const todo = {
-        id: Date.now(),
-        title,
-        priority,
-        dueDate,
-        completed: false,
-        createdAt: new Date().toISOString()
-      };
-      this.todos.push(todo);
-      this.save();
-      return todo;
-    },
-
-    delete(id) {
-      this.todos = this.todos.filter(t => t.id !== id);
-      this.save();
-    },
-
-    toggle(id) {
-      const todo = this.todos.find(t => t.id === id);
-      if (todo) { todo.completed = !todo.completed; this.save(); }
-    },
-
-    filter(type) {
-      if (type === 'active') return this.todos.filter(t => !t.completed);
-      if (type === 'completed') return this.todos.filter(t => t.completed);
-      return this.todos;
-    }
-  };
-
-  // ── View ───────────────────────────────
-  const TodoView = {
-    currentFilter: 'all',
-
-    render() {
-      const list = document.getElementById('todoList');
-      const todos = TodoModel.filter(this.currentFilter);
-
-      if (todos.length === 0) {
-        list.innerHTML = '<div class="empty">할 일이 없어요 🎉</div>';
-        return;
-      }
-
-      list.innerHTML = todos.map(todo => `
-        <div class="todo-item ${todo.completed ? 'completed' : ''}">
-          <input type="checkbox" ${todo.completed ? 'checked' : ''}
-            onchange="TodoController.toggleTodo(${todo.id})">
-          <span class="todo-title">${todo.title}</span>
-          <span class="badge ${todo.priority}">
-            ${todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음'}
-          </span>
-          ${todo.dueDate ? `<span class="due-date">📅 ${todo.dueDate}</span>` : ''}
-          <button class="btn-delete" onclick="TodoController.deleteTodo(${todo.id})">삭제</button>
-        </div>
-      `).join('');
-    }
-  };
-
-  // ── Controller ─────────────────────────
-  const TodoController = {
-    addTodo() {
-      const title = document.getElementById('todoInput').value.trim();
-      if (!title) { alert('할 일을 입력해주세요!'); return; }
-      const priority = document.getElementById('prioritySelect').value;
-      const dueDate = document.getElementById('dueDateInput').value;
-      TodoModel.add(title, priority, dueDate);
-      document.getElementById('todoInput').value = '';
-      TodoView.render();
-    },
-
-    deleteTodo(id) {
-      if (confirm('정말 삭제할까요?')) {
-        TodoModel.delete(id);
-        TodoView.render();
-      }
-    },
-
-    toggleTodo(id) {
-      TodoModel.toggle(id);
-      TodoView.render();
-    },
-
-    filterTodos(type, btn) {
-      document.querySelectorAll('.filter-box button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      TodoView.currentFilter = type;
-      TodoView.render();
-    }
-  };
-
-  // 초기 렌더링
-  TodoView.render();
-</script>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;!DOCTYPE html&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;html lang="ko"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;head&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;할 일 관리 앱&lt;/title&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;style&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>* { box-sizing: border-box; margin: 0; padding: 0; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.container { max-width: 600px; margin: 0 auto; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>h1 { text-align: center; margin-bottom: 20px; color: #333; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.form-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.form-box input, .form-box select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.form-box button { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.form-box button:hover { background: #45a049; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.filter-box { display: flex; gap: 8px; margin-bottom: 16px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.filter-box button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.filter-box button.active { background: #4CAF50; color: white; border-color: #4CAF50; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.todo-item.completed { opacity: 0.6; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.todo-item.completed .todo-title { text-decoration: line-through; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.todo-item.overdue { border-left: 4px solid #ff5252; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.todo-title { flex: 1; font-size: 15px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.badge.high { background: #ffebee; color: #c62828; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.badge.mid { background: #fff3e0; color: #e65100; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.badge.low { background: #e8f5e9; color: #2e7d32; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.due-date { font-size: 12px; color: #888; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.due-date.overdue { color: #ff5252; font-weight: bold; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.btn-delete { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.btn-edit { background: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.empty { text-align: center; color: #aaa; padding: 40px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>/* 수정 모달 */</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal.show { display: flex; align-items: center; justify-content: center; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal-box { background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 400px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal-box h3 { margin-bottom: 16px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal-box input, .modal-box select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal-buttons { display: flex; gap: 8px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.modal-buttons button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.btn-save { background: #4CAF50; color: white; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>.btn-cancel { background: #ddd; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/head&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;body&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;div class="container"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h1&gt;📝 할 일 관리&lt;/h1&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="form-box"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;input type="text" id="todoInput" placeholder="할 일을 입력하세요"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="prioritySelect"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="high"&gt;🔴 높음&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="mid" selected&gt;🟡 중간&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="low"&gt;🟢 낮음&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;input type="date" id="dueDateInput"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button onclick="TodoController.addTodo()"&gt;+ 추가하기&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="filter-box"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="active" onclick="TodoController.filterTodos('all', this)"&gt;전체&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button onclick="TodoController.filterTodos('active', this)"&gt;진행중&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button onclick="TodoController.filterTodos('completed', this)"&gt;완료&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="todoList"&gt;&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;!-- 수정 모달 --&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;div class="modal" id="editModal"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal-box"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h3&gt;할 일 수정&lt;/h3&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;input type="text" id="editInput" placeholder="할 일 제목"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;select id="editPriority"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="high"&gt;🔴 높음&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="mid"&gt;🟡 중간&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;option value="low"&gt;🟢 낮음&lt;/option&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/select&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;input type="date" id="editDueDate"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="modal-buttons"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn-cancel" onclick="TodoController.closeModal()"&gt;취소&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn-save" onclick="TodoController.saveEdit()"&gt;저장&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;script&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>// ── Model ──────────────────────────────</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>const TodoModel = {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>todos: JSON.parse(localStorage.getItem('todos') || '[]'),</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>save() {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>localStorage.setItem('todos', JSON.stringify(this.todos));</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>add(title, priority, dueDate) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const todo = {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>id: Date.now(),</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>title,</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>priority,</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>dueDate,</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>completed: false,</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>createdAt: new Date().toISOString()</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>};</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.todos.push(todo);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.save();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>delete(id) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.todos = this.todos.filter(t =&gt; t.id !== id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.save();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>toggle(id) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const todo = this.todos.find(t =&gt; t.id === id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (todo) { todo.completed = !todo.completed; this.save(); }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>update(id, title, priority, dueDate) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const todo = this.todos.find(t =&gt; t.id === id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (todo) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>todo.title = title;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>todo.priority = priority;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>todo.dueDate = dueDate;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>this.save();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>filter(type) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (type === 'active') return this.todos.filter(t =&gt; !t.completed);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (type === 'completed') return this.todos.filter(t =&gt; t.completed);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>return this.todos;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>isOverdue(dueDate) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (!dueDate) return false;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>return new Date(dueDate) &lt; new Date(new Date().toDateString());</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>};</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>// ── View ───────────────────────────────</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>const TodoView = {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>currentFilter: 'all',</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>render() {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const list = document.getElementById('todoList');</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const todos = TodoModel.filter(this.currentFilter);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (todos.length === 0) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>list.innerHTML = '&lt;div class="empty"&gt;할 일이 없어요 🎉&lt;/div&gt;';</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>return;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>list.innerHTML = todos.map(todo =&gt; {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>const overdue = !todo.completed &amp;&amp; TodoModel.isOverdue(todo.dueDate);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>return `</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="todo-item ${todo.completed ? 'completed' : ''} ${overdue ? 'overdue' : ''}"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="checkbox" ${todo.completed ? 'checked' : ''}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">              </span>onchange="TodoController.toggleTodo(${todo.id})"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="todo-title"&gt;${todo.title}&lt;/span&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="badge ${todo.priority}"&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">              </span>${todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음'}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/span&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>${todo.dueDate ? `&lt;span class="due-date ${overdue ? 'overdue' : ''}"&gt;📅 ${todo.dueDate} ${overdue ? '⚠️ 마감 초과' : ''}&lt;/span&gt;` : ''}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="btn-edit" onclick="TodoController.openEdit(${todo.id})"&gt;수정&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="btn-delete" onclick="TodoController.deleteTodo(${todo.id})"&gt;삭제&lt;/button&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>`;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>}).join('');</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>};</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>// ── Controller ─────────────────────────</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>const TodoController = {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>editingId: null,</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>addTodo() {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const title = document.getElementById('todoInput').value.trim();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (!title) { alert('할 일을 입력해주세요!'); return; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const priority = document.getElementById('prioritySelect').value;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const dueDate = document.getElementById('dueDateInput').value;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoModel.add(title, priority, dueDate);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('todoInput').value = '';</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('dueDateInput').value = '';</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>deleteTodo(id) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (confirm('정말 삭제할까요?')) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>TodoModel.delete(id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">        </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>toggleTodo(id) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoModel.toggle(id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>filterTodos(type, btn) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.querySelectorAll('.filter-box button').forEach(b =&gt; b.classList.remove('active'));</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>btn.classList.add('active');</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoView.currentFilter = type;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>openEdit(id) {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const todo = TodoModel.todos.find(t =&gt; t.id === id);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (!todo) return;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.editingId = id;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('editInput').value = todo.title;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('editPriority').value = todo.priority;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('editDueDate').value = todo.dueDate || '';</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('editModal').classList.add('show');</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>closeModal() {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById('editModal').classList.remove('show');</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.editingId = null;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>},</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>saveEdit() {</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const title = document.getElementById('editInput').value.trim();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>if (!title) { alert('할 일을 입력해주세요!'); return; }</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const priority = document.getElementById('editPriority').value;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>const dueDate = document.getElementById('editDueDate').value;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoModel.update(this.editingId, title, priority, dueDate);</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>this.closeModal();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">      </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">    </span>}</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>};</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626; min-height: 32.0px"><span class="s1"></span><br></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1"><span class="Apple-converted-space">  </span>TodoView.render();</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/script&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/body&gt;</span></h1>
+<h1 style="margin: 0.0px 0.0px 20.0px 0.0px; text-align: center; font: 24.0px 'Apple Color Emoji'; color: #262626; -webkit-text-stroke: #262626"><span class="s1">&lt;/html&gt;</span></h1>
 </body>
 </html>
