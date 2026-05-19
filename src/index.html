@@ -10,7 +10,6 @@
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 20px; color: #333; }
 
-    /* 통계 */
     .stats { display: flex; gap: 10px; margin-bottom: 20px; }
     .stat-item { flex: 1; background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .stat-num { font-size: 24px; font-weight: bold; color: #333; }
@@ -18,49 +17,43 @@
     .stat-item.completed .stat-num { color: #4CAF50; }
     .stat-item.active .stat-num { color: #2196F3; }
 
-    /* 입력 폼 */
     .form-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .form-box input[type="text"], .form-box input[type="date"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
+    .form-box input[type="text"], .form-box input[type="datetime-local"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
     .form-box input.error { border-color: #ff5252; }
     .form-box button.add-btn { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 4px; }
     .form-box button.add-btn:hover { background: #45a049; }
 
-    /* 우선순위 탭 */
     .priority-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
     .priority-tab { flex: 1; padding: 8px; border: 2px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; text-align: center; transition: all 0.15s; }
     .priority-tab.active-high { border-color: #c62828; background: #ffebee; color: #c62828; font-weight: bold; }
     .priority-tab.active-mid { border-color: #e65100; background: #fff3e0; color: #e65100; font-weight: bold; }
     .priority-tab.active-low { border-color: #2e7d32; background: #e8f5e9; color: #2e7d32; font-weight: bold; }
 
-    /* 필터 + 정렬 */
     .control-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .filter-box { display: flex; gap: 8px; }
     .filter-box button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; }
     .filter-box button.active { background: #4CAF50; color: white; border-color: #4CAF50; }
     .sort-box select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
 
-    /* 일괄 삭제 */
     .bulk-box { display: flex; justify-content: flex-end; margin-bottom: 10px; }
     .btn-bulk-delete { padding: 6px 14px; background: #ff5252; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
     .btn-bulk-delete:hover { background: #e53935; }
 
-    /* 할일 카드 */
-    .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; }
+    .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .todo-item.completed { opacity: 0.6; }
     .todo-item.completed .todo-title { text-decoration: line-through; }
     .todo-item.overdue { border-left: 4px solid #ff5252; }
-    .todo-title { flex: 1; font-size: 15px; }
-    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .todo-title { flex: 1; font-size: 15px; min-width: 100px; }
+    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
     .badge.high { background: #ffebee; color: #c62828; }
     .badge.mid { background: #fff3e0; color: #e65100; }
     .badge.low { background: #e8f5e9; color: #2e7d32; }
-    .due-date { font-size: 12px; color: #888; }
+    .due-date { font-size: 12px; color: #888; white-space: nowrap; }
     .due-date.overdue { color: #ff5252; font-weight: bold; }
     .btn-delete { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
     .btn-edit { background: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
     .empty { text-align: center; color: #aaa; padding: 40px; }
 
-    /* 수정 모달 */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
     .modal.show { display: flex; align-items: center; justify-content: center; }
     .modal-box { background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 400px; }
@@ -81,7 +74,6 @@
 <div class="container">
   <h1>📝 할 일 관리</h1>
 
-  <!-- 통계 -->
   <div class="stats">
     <div class="stat-item">
       <div class="stat-num" id="statTotal">0</div>
@@ -97,19 +89,17 @@
     </div>
   </div>
 
-  <!-- 입력 폼 -->
   <div class="form-box">
     <input type="text" id="todoInput" placeholder="할 일을 입력하세요 (Enter로 추가)">
     <div class="priority-tabs">
-      <button class="priority-tab active-high" onclick="TodoController.selectPriority('high', this)">🔴 높음</button>
-      <button class="priority-tab active-mid" onclick="TodoController.selectPriority('mid', this)">🟡 중간</button>
+      <button class="priority-tab" onclick="TodoController.selectPriority('high', this)">🔴 높음</button>
+      <button class="priority-tab" onclick="TodoController.selectPriority('mid', this)">🟡 중간</button>
       <button class="priority-tab" onclick="TodoController.selectPriority('low', this)">🟢 낮음</button>
     </div>
-    <input type="date" id="dueDateInput">
+    <input type="datetime-local" id="dueDateInput">
     <button class="add-btn" onclick="TodoController.addTodo()">+ 추가하기</button>
   </div>
 
-  <!-- 필터 + 정렬 -->
   <div class="control-box">
     <div class="filter-box">
       <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
@@ -125,16 +115,13 @@
     </div>
   </div>
 
-  <!-- 일괄 삭제 -->
   <div class="bulk-box">
     <button class="btn-bulk-delete" onclick="TodoController.deleteCompleted()">완료 항목 일괄 삭제</button>
   </div>
 
-  <!-- 할일 목록 -->
   <div id="todoList"></div>
 </div>
 
-<!-- 수정 모달 -->
 <div class="modal" id="editModal">
   <div class="modal-box">
     <h3>할 일 수정</h3>
@@ -144,7 +131,7 @@
       <button class="modal-priority-tab" onclick="TodoController.selectEditPriority('mid', this)">🟡 중간</button>
       <button class="modal-priority-tab" onclick="TodoController.selectEditPriority('low', this)">🟢 낮음</button>
     </div>
-    <input type="date" id="editDueDate">
+    <input type="datetime-local" id="editDueDate">
     <div class="modal-buttons">
       <button class="btn-cancel" onclick="TodoController.closeModal()">취소</button>
       <button class="btn-save" onclick="TodoController.saveEdit()">저장</button>
@@ -153,7 +140,6 @@
 </div>
 
 <script>
-  // ── Model ──────────────────────────────
   const TodoModel = {
     todos: JSON.parse(localStorage.getItem('todos') || '[]'),
 
@@ -196,8 +182,8 @@
     },
 
     sort(todos, type) {
-      const priority = { high: 0, mid: 1, low: 2 };
-      if (type === 'priority') return [...todos].sort((a, b) => priority[a.priority] - priority[b.priority]);
+      const p = { high: 0, mid: 1, low: 2 };
+      if (type === 'priority') return [...todos].sort((a, b) => p[a.priority] - p[b.priority]);
       if (type === 'dueDate') return [...todos].sort((a, b) => {
         if (!a.dueDate) return 1;
         if (!b.dueDate) return -1;
@@ -208,7 +194,18 @@
 
     isOverdue(dueDate) {
       if (!dueDate) return false;
-      return new Date(dueDate) < new Date(new Date().toDateString());
+      return new Date(dueDate) < new Date();
+    },
+
+    formatDate(dueDate) {
+      if (!dueDate) return '';
+      const d = new Date(dueDate);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const min = String(d.getMinutes()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
     },
 
     getStats() {
@@ -220,7 +217,6 @@
     }
   };
 
-  // ── View ───────────────────────────────
   const TodoView = {
     currentFilter: 'all',
     currentSort: 'default',
@@ -231,10 +227,10 @@
     },
 
     renderStats() {
-      const stats = TodoModel.getStats();
-      document.getElementById('statTotal').textContent = stats.total;
-      document.getElementById('statActive').textContent = stats.active;
-      document.getElementById('statCompleted').textContent = stats.completed;
+      const s = TodoModel.getStats();
+      document.getElementById('statTotal').textContent = s.total;
+      document.getElementById('statActive').textContent = s.active;
+      document.getElementById('statCompleted').textContent = s.completed;
     },
 
     renderList() {
@@ -249,6 +245,7 @@
 
       list.innerHTML = todos.map(todo => {
         const overdue = !todo.completed && TodoModel.isOverdue(todo.dueDate);
+        const dateStr = TodoModel.formatDate(todo.dueDate);
         return `
           <div class="todo-item ${todo.completed ? 'completed' : ''} ${overdue ? 'overdue' : ''}">
             <input type="checkbox" ${todo.completed ? 'checked' : ''}
@@ -257,7 +254,7 @@
             <span class="badge ${todo.priority}">
               ${todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음'}
             </span>
-            ${todo.dueDate ? `<span class="due-date ${overdue ? 'overdue' : ''}">📅 ${todo.dueDate} ${overdue ? '⚠️ 마감초과' : ''}</span>` : ''}
+            ${dateStr ? `<span class="due-date ${overdue ? 'overdue' : ''}">📅 ${dateStr} ${overdue ? '⚠️ 마감초과' : ''}</span>` : ''}
             <button class="btn-edit" onclick="TodoController.openEdit(${todo.id})">수정</button>
             <button class="btn-delete" onclick="TodoController.deleteTodo(${todo.id})">삭제</button>
           </div>
@@ -266,7 +263,6 @@
     }
   };
 
-  // ── Controller ─────────────────────────
   const TodoController = {
     editingId: null,
     selectedPriority: 'mid',
@@ -274,17 +270,15 @@
 
     selectPriority(priority, btn) {
       this.selectedPriority = priority;
-      document.querySelectorAll('.priority-tab').forEach(b => {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
+      document.querySelectorAll('.priority-tab').forEach(b =>
+        b.classList.remove('active-high', 'active-mid', 'active-low'));
       btn.classList.add(`active-${priority}`);
     },
 
     selectEditPriority(priority, btn) {
       this.selectedEditPriority = priority;
-      document.querySelectorAll('.modal-priority-tab').forEach(b => {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
+      document.querySelectorAll('.modal-priority-tab').forEach(b =>
+        b.classList.remove('active-high', 'active-mid', 'active-low'));
       btn.classList.add(`active-${priority}`);
     },
 
@@ -343,14 +337,10 @@
       this.selectedEditPriority = todo.priority;
       document.getElementById('editInput').value = todo.title;
       document.getElementById('editDueDate').value = todo.dueDate || '';
-
-      document.querySelectorAll('.modal-priority-tab').forEach(b => {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
-      const tabs = document.querySelectorAll('.modal-priority-tab');
+      document.querySelectorAll('.modal-priority-tab').forEach(b =>
+        b.classList.remove('active-high', 'active-mid', 'active-low'));
       const idx = { high: 0, mid: 1, low: 2 };
-      tabs[idx[todo.priority]].classList.add(`active-${todo.priority}`);
-
+      document.querySelectorAll('.modal-priority-tab')[idx[todo.priority]].classList.add(`active-${todo.priority}`);
       document.getElementById('editModal').classList.add('show');
     },
 
@@ -370,10 +360,8 @@
     }
   };
 
-  // 초기 우선순위 중간 선택
   TodoController.selectPriority('mid', document.querySelectorAll('.priority-tab')[1]);
 
-  // 엔터키로 추가
   document.getElementById('todoInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') TodoController.addTodo();
   });
