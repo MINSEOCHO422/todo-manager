@@ -331,7 +331,14 @@ formatDate(dueDate) {
         setTimeout(() => input.classList.remove('error'), 1500);
         return;
       }
-      const dueDate = document.getElementById('dueDateInput').value;
+const dueDate = document.getElementById('dueDateInput').value;
+      if (dueDate) {
+        const today = new Date().toISOString().split('T')[0];
+        if (dueDate < today) {
+          alert('오늘 이후 날짜를 선택해주세요!');
+          return;
+        }
+      }
       TodoModel.add(title, this.selectedPriority, dueDate);
       input.value = '';
       document.getElementById('dueDateInput').value = '';
@@ -419,10 +426,12 @@ formatDate(dueDate) {
       TodoView.render();
     },
 
-  toggleDark() {
+toggleDark() {
   document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('darkMode', isDark);
   const btn = document.getElementById('darkBtn');
-  if (document.body.classList.contains('dark')) {
+  if (isDark) {
     btn.textContent = '☀️ 라이트모드';
     btn.style.background = '#16213e';
     btn.style.color = '#e0e0e0';
@@ -436,7 +445,7 @@ formatDate(dueDate) {
 }
 };
 
-  TodoController.selectPriority('mid', document.querySelectorAll('.priority-tab')[1]);
+ TodoController.selectPriority('mid', document.querySelectorAll('.priority-tab')[1]);
 
   document.getElementById('todoInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') TodoController.addTodo();
@@ -444,6 +453,16 @@ formatDate(dueDate) {
 
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('dueDateInput').min = today;
+
+// 다크모드 복원
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark');
+  const btn = document.getElementById('darkBtn');
+  btn.textContent = '☀️ 라이트모드';
+  btn.style.background = '#16213e';
+  btn.style.color = '#e0e0e0';
+  btn.style.borderColor = '#444';
+}
 
   TodoView.render();
 </script>
