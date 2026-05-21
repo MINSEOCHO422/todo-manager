@@ -20,6 +20,24 @@ body.dark .modal-box { background: #16213e; color: #e0e0e0; }
 body.dark .modal-box input { background: #0f3460; color: #e0e0e0; border-color: #444; }
 body.dark .modal-priority-tab { background: #0f3460; color: #e0e0e0; border-color: #444; }
 body.dark h1 { color: #e0e0e0; }
+/* 모바일 반응형 */
+@media (max-width: 480px) {
+  body { padding: 12px; }
+  .container { max-width: 100%; }
+  h1 { font-size: 20px; }
+  .stats { gap: 6px; }
+  .stat-item { padding: 8px; }
+  .stat-num { font-size: 18px; }
+  .priority-tabs { gap: 4px; }
+  .priority-tab { padding: 6px 4px; font-size: 12px; }
+  .control-box { flex-direction: column; gap: 8px; align-items: flex-start; }
+  .filter-box { flex-wrap: wrap; gap: 6px; }
+  .bulk-box { flex-direction: column; gap: 6px; }
+  .btn-bulk-complete, .btn-bulk-delete { width: 100%; text-align: center; }
+  .todo-item { flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .todo-title { width: 100%; }
+  .btn-edit, .btn-delete { padding: 6px 12px; font-size: 13px; }
+}
    .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 20px; color: #333; }
 
