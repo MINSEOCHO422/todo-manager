@@ -453,6 +453,7 @@ toggleDark() {
 
 const today = new Date().toISOString().split('T')[0];
 document.getElementById('dueDateInput').min = today;
+document.getElementById('dueDateInput').value = today;
 
 // 다크모드 복원
 if (localStorage.getItem('darkMode') === 'true') {
