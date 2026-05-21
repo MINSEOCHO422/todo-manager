@@ -399,8 +399,7 @@ formatDate(dueDate) {
         document.getElementById('editDueDate').value);
       this.closeModal();
       TodoView.render();
-    }
-  };
+    },
 
   toggleDark() {
   document.body.classList.toggle('dark');
@@ -416,7 +415,8 @@ formatDate(dueDate) {
     btn.style.color = '#333';
     btn.style.borderColor = '#ddd';
   }
-},
+}
+};
 
   TodoController.selectPriority('mid', document.querySelectorAll('.priority-tab')[1]);
 
