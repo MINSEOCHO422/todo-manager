@@ -132,7 +132,8 @@ body.dark h1 { color: #e0e0e0; }
       <button class="priority-tab" onclick="TodoController.selectPriority('low', this)">🟢 낮음</button>
     </div>
 <input type="date" id="dueDateInput">
-    <button class="add-btn" onclick="TodoController.addTodo()">+ 추가하기</button>
+<p id="dateError" style="color:#ff5252; font-size:12px; margin-top:-6px; margin-bottom:8px; display:none;">오늘 이후 날짜를 선택해주세요</p>
+<button class="add-btn" onclick="TodoController.addTodo()">+ 추가하기</button>
   </div>
 
   <div class="control-box">
@@ -334,10 +335,14 @@ formatDate(dueDate) {
 const dueDate = document.getElementById('dueDateInput').value;
       if (dueDate) {
         const today = new Date().toISOString().split('T')[0];
-        if (dueDate < today) {
-          alert('오늘 이후 날짜를 선택해주세요!');
+if (dueDate < today) {
+          document.getElementById('dateError').style.display = 'block';
+          setTimeout(function() {
+            document.getElementById('dateError').style.display = 'none';
+          }, 2000);
           return;
         }
+        document.getElementById('dateError').style.display = 'none';
       }
       TodoModel.add(title, this.selectedPriority, dueDate);
       input.value = '';
