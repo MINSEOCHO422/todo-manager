@@ -3,293 +3,537 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>할 일 관리 앱</title>
+  <title>할 일 관리</title>
   <style>
-    /* ── 기본 리셋 및 공통 ── */
+    /* ── 기본 설정 ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; transition: background 0.3s, color 0.3s; }
-    .container { max-width: 600px; margin: 0 auto; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      color: #1a1a1a;
+      padding: 24px 16px;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
 
     /* ── 다크모드 ── */
-    body.dark { background: #1a1a2e; color: #e0e0e0; }
-    body.dark .stat-item { background: #16213e; }
-    body.dark .stat-num { color: #e0e0e0; }
-    body.dark .form-box { background: #16213e; }
-    body.dark .form-box input { background: #0f3460; color: #e0e0e0; border-color: #444; }
-    body.dark .priority-tab { background: #0f3460; color: #e0e0e0; border-color: #444; }
-    body.dark .filter-box button { background: #16213e; color: #e0e0e0; border-color: #444; }
-    body.dark .sort-box select { background: #16213e; color: #e0e0e0; border-color: #444; }
-    body.dark .todo-item { background: #16213e; color: #e0e0e0; }
-    body.dark .modal-box { background: #16213e; color: #e0e0e0; }
-    body.dark .modal-box input { background: #0f3460; color: #e0e0e0; border-color: #444; }
-    body.dark .modal-priority-tab { background: #0f3460; color: #e0e0e0; border-color: #444; }
-    body.dark h1 { color: #e0e0e0; }
+    body.dark { background: #0f0f0f; color: #f0f0f0; }
+    body.dark .card { background: #1c1c1e; border-color: #2c2c2e; }
+    body.dark input, body.dark select { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
+    body.dark .priority-tab { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
+    body.dark .filter-btn { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
+    body.dark .filter-btn.active { background: #1a1a1a; color: #fff; }
+    body.dark .todo-card { background: #1c1c1e; border-color: #2c2c2e; }
+    body.dark .todo-title-text { color: #f0f0f0; }
+    body.dark .meta-text { color: #aeaeb2; }
+    body.dark .sort-select { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
+    body.dark .modal-overlay { background: rgba(0,0,0,0.7); }
+    body.dark .modal-card { background: #1c1c1e; border-color: #2c2c2e; }
+    body.dark .section-title { color: #aeaeb2; }
 
-    /* ── 모바일 반응형 ── */
-    @media (max-width: 480px) {
-      body { padding: 12px; }
-      .container { max-width: 100%; }
-      h1 { font-size: 20px; }
-      .stats { gap: 6px; }
-      .stat-item { padding: 8px; }
-      .stat-num { font-size: 18px; }
-      .priority-tabs { gap: 4px; }
-      .priority-tab { padding: 6px 4px; font-size: 12px; }
-      .control-box { flex-direction: column; gap: 8px; align-items: flex-start; }
-      .filter-box { flex-wrap: wrap; gap: 6px; }
-      .bulk-box { flex-direction: column; gap: 6px; }
-      .btn-bulk-complete, .btn-bulk-delete { width: 100%; text-align: center; }
-      .todo-item { flex-wrap: wrap; gap: 8px; padding: 12px; }
-      .todo-title { width: 100%; }
-      .btn-edit, .btn-delete { padding: 6px 12px; font-size: 13px; }
+    /* ── 헤더 ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
     }
+    .app-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #1a1a1a;
+    }
+    body.dark .app-title { color: #f0f0f0; }
+    .dark-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid #e5e5e7;
+      background: white;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    body.dark .dark-btn { background: #2c2c2e; border-color: #3a3a3c; }
 
     /* ── 통계 ── */
-    .stats { display: flex; gap: 10px; margin-bottom: 20px; }
-    .stat-item { flex: 1; background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .stat-num { font-size: 24px; font-weight: bold; color: #333; }
-    .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
-    .stat-item.completed .stat-num { color: #4CAF50; }
-    .stat-item.active .stat-num { color: #2196F3; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      border: 1.5px solid #f0f0f0;
+    }
+    body.dark .stat-card { background: #1c1c1e; border-color: #2c2c2e; }
+    .stat-num {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+    }
+body.dark .stat-num { color: #f0f0f0; }
+body.dark .stat-num.blue { color: #0a84ff; }
+body.dark .stat-num.green { color: #30d158; }
+    .stat-num.blue { color: #007aff; }
+    .stat-num.green { color: #34c759; }
+    .stat-label {
+      font-size: 11px;
+      color: #8e8e93;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    /* ── 카드 공통 ── */
+    .card {
+      background: white;
+      border-radius: 16px;
+      border: 1.5px solid #f0f0f0;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
 
     /* ── 입력 폼 ── */
-    .form-box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .form-box input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; transition: border-color 0.2s; }
-    .form-box input.error { border-color: #ff5252; }
-    .form-box button.add-btn { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; margin-top: 4px; }
-    .form-box button.add-btn:hover { background: #45a049; }
+    .input-main {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      background: white;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .input-main:focus { border-color: #007aff; }
+    .input-main.error { border-color: #ff3b30; }
 
     /* ── 우선순위 탭 ── */
-    .priority-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
-    .priority-tab { flex: 1; padding: 8px; border: 2px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 14px; text-align: center; transition: all 0.15s; }
-    .priority-tab.active-high { border-color: #c62828; background: #ffebee; color: #c62828; font-weight: bold; }
-    .priority-tab.active-mid { border-color: #e65100; background: #fff3e0; color: #e65100; font-weight: bold; }
-    .priority-tab.active-low { border-color: #2e7d32; background: #e8f5e9; color: #2e7d32; font-weight: bold; }
+    .priority-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .priority-tab {
+      flex: 1; padding: 8px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .priority-tab.active-high { border-color: #ff3b30; background: #fff2f0; color: #ff3b30; }
+    .priority-tab.active-mid { border-color: #ff9500; background: #fff8f0; color: #ff9500; }
+    .priority-tab.active-low { border-color: #34c759; background: #f0fff4; color: #34c759; }
+
+    /* ── 날짜 입력 ── */
+    .input-date {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      margin-bottom: 10px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: border-color 0.2s;
+    }
+    .input-date:focus { border-color: #007aff; }
+    .date-error { color: #ff3b30; font-size: 12px; margin-top: -6px; margin-bottom: 8px; display: none; }
+
+    /* ── 추가 버튼 ── */
+    .add-btn {
+      width: 100%;
+      padding: 12px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .add-btn:hover { background: #0066d6; }
+    .add-btn:active { background: #0055b3; }
+
+    /* ── 섹션 타이틀 ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
 
     /* ── 필터 + 정렬 ── */
-    .control-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .filter-box { display: flex; gap: 8px; }
-    .filter-box button { padding: 6px 16px; border: 1px solid #ddd; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; }
-    .filter-box button.active { background: #4CAF50; color: white; border-color: #4CAF50; }
-    .sort-box select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .filter-tabs { display: flex; gap: 4px; }
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 20px;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: #8e8e93;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .filter-btn.active {
+      background: #1a1a1a;
+      color: white;
+      border-color: #1a1a1a;
+    }
+    body.dark .filter-btn.active { background: #f0f0f0; color: #1a1a1a; border-color: #f0f0f0; }
+    .sort-select {
+      padding: 6px 10px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 20px;
+      font-size: 12px;
+      background: white;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      color: #8e8e93;
+    }
 
-    /* ── 일괄 처리 버튼 ── */
-    .bulk-box { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
-    .btn-bulk-complete { padding: 6px 14px; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
-    .btn-bulk-complete:hover { background: #45a049; }
-    .btn-bulk-delete { padding: 6px 14px; background: #ff5252; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
-    .btn-bulk-delete:hover { background: #e53935; }
+    /* ── 일괄 처리 ── */
+    .bulk-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .bulk-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .bulk-btn:hover { opacity: 0.8; }
+    .bulk-btn.complete { background: #e8f5e9; color: #34c759; }
+    .bulk-btn.delete { background: #fff2f0; color: #ff3b30; }
 
     /* ── 할일 카드 ── */
-    .todo-item { background: white; padding: 16px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .todo-item.completed { opacity: 0.6; }
-    .todo-item.completed .todo-title { text-decoration: line-through; }
-    .todo-item.overdue { border-left: 4px solid #ff5252; }
-    .todo-title { flex: 1; font-size: 15px; min-width: 100px; }
-    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
-    .badge.high { background: #ffebee; color: #c62828; }
-    .badge.mid { background: #fff3e0; color: #e65100; }
-    .badge.low { background: #e8f5e9; color: #2e7d32; }
-    .due-date { font-size: 12px; color: #888; white-space: nowrap; }
-    .due-date.overdue { color: #ff5252; font-weight: bold; }
-    .btn-delete { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-    .btn-edit { background: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-    .empty { text-align: center; color: #aaa; padding: 40px; }
+    .todo-card {
+      background: white;
+      border-radius: 12px;
+      border: 1.5px solid #f0f0f0;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .todo-card:hover { border-color: #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .todo-card.overdue { border-left: 3px solid #ff3b30; }
+    .todo-card.completed { opacity: 0.5; }
+    .todo-card.completed .todo-title-text { text-decoration: line-through; }
 
-    /* ── 수정 모달 ── */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
-    .modal.show { display: flex; align-items: center; justify-content: center; }
-    .modal-box { background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 400px; }
-    .modal-box h3 { margin-bottom: 16px; }
-    .modal-box input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
-    .modal-priority-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
-    .modal-priority-tab { flex: 1; padding: 8px; border: 2px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.15s; }
-    .modal-priority-tab.active-high { border-color: #c62828; background: #ffebee; color: #c62828; font-weight: bold; }
-    .modal-priority-tab.active-mid { border-color: #e65100; background: #fff3e0; color: #e65100; font-weight: bold; }
-    .modal-priority-tab.active-low { border-color: #2e7d32; background: #e8f5e9; color: #2e7d32; font-weight: bold; }
-    .modal-buttons { display: flex; gap: 8px; margin-top: 4px; }
-    .modal-buttons button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-    .btn-save { background: #4CAF50; color: white; }
-    .btn-cancel { background: #ddd; }
+    /* 체크박스 */
+    .todo-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #d1d1d6;
+      background: white;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .todo-check.checked { background: #34c759; border-color: #34c759; }
+    .todo-check.checked::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+    body.dark .todo-check { background: #2c2c2e; border-color: #48484a; }
+
+    .todo-content { flex: 1; min-width: 0; }
+    .todo-title-text { font-size: 15px; font-weight: 500; color: #1a1a1a; display: block; }
+    .todo-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .meta-text { font-size: 12px; color: #8e8e93; }
+    .meta-text.overdue { color: #ff3b30; }
+
+.priority-dot {
+      display: none;
+    }
+.priority-badge {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+.priority-badge.high { background: #fff2f0; color: #ff3b30; }
+.priority-badge.mid { background: #fff8f0; color: #ff9500; }
+.priority-badge.low { background: #f0fff4; color: #34c759; }
+body.dark .priority-badge.high { background: #3a1a1a; color: #ff453a; }
+body.dark .priority-badge.mid { background: #3a2a1a; color: #ff9f0a; }
+body.dark .priority-badge.low { background: #1a3a1a; color: #30d158; }
+
+    .todo-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .action-btn {
+      padding: 5px 10px;
+      border-radius: 7px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .action-btn:hover { opacity: 0.8; }
+    .action-btn.edit { background: #f0f4ff; color: #007aff; }
+    .action-btn.delete { background: #fff2f0; color: #ff3b30; }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: #8e8e93;
+    }
+    .empty-icon { font-size: 40px; margin-bottom: 8px; }
+    .empty-text { font-size: 15px; font-weight: 500; }
+    .empty-sub { font-size: 13px; margin-top: 4px; }
+
+    /* ── 모달 ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 400px;
+      border: 1.5px solid #f0f0f0;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+    .modal-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      background: white;
+      margin-bottom: 10px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    body.dark .modal-input { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
+    .modal-input:focus { border-color: #007aff; }
+    .modal-date {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e5e7;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+      margin-bottom: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+    }
+    body.dark .modal-date { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btn {
+      flex: 1; padding: 12px;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .modal-btn:hover { opacity: 0.85; }
+    .modal-btn.cancel { background: #f2f2f7; color: #1a1a1a; }
+    .modal-btn.save { background: #007aff; color: white; }
+    body.dark .modal-btn.cancel { background: #2c2c2e; color: #f0f0f0; }
+body.dark .priority-tab { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
+body.dark .priority-tab.active-high { background: #3a1a1a; color: #ff453a; border-color: #ff453a; }
+body.dark .priority-tab.active-mid { background: #3a2a1a; color: #ff9f0a; border-color: #ff9f0a; }
+body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border-color: #30d158; }
+
+    
+    /* ── 모바일 반응형 ── */
+    @media (max-width: 480px) {
+      body { padding: 16px 12px; }
+      .app-title { font-size: 20px; }
+      .stat-num { font-size: 22px; }
+      .filter-tabs { flex-wrap: wrap; }
+      .todo-actions { flex-direction: column; }
+      .control-row { flex-direction: column; gap: 8px; align-items: flex-start; }
+      .bulk-row { flex-direction: column; }
+      .bulk-btn { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- 헤더: 제목 + 다크모드 버튼 -->
-  <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:20px;">
-    <h1 style="margin:0">📝 할 일 관리</h1>
-    <button onclick="TodoController.toggleDark()" id="darkBtn" style="padding:6px 14px; border-radius:20px; border:1px solid #ddd; background:white; cursor:pointer; font-size:13px;">🌙 다크모드</button>
+  <!-- 헤더 -->
+  <div class="header">
+    <span class="app-title">할 일</span>
+    <button class="dark-btn" id="darkBtn" onclick="TodoController.toggleDark()">🌙</button>
   </div>
 
-  <!-- 통계 카드 -->
+  <!-- 통계 -->
   <div class="stats">
-    <div class="stat-item">
+    <div class="stat-card">
       <div class="stat-num" id="statTotal">0</div>
       <div class="stat-label">전체</div>
     </div>
-    <div class="stat-item active">
-      <div class="stat-num" id="statActive">0</div>
+    <div class="stat-card">
+      <div class="stat-num blue" id="statActive">0</div>
       <div class="stat-label">진행중</div>
     </div>
-    <div class="stat-item completed">
-      <div class="stat-num" id="statCompleted">0</div>
+    <div class="stat-card">
+      <div class="stat-num green" id="statCompleted">0</div>
       <div class="stat-label">완료</div>
     </div>
   </div>
 
   <!-- 입력 폼 -->
-  <div class="form-box">
-    <input type="text" id="todoInput" placeholder="할 일을 입력하세요 (Enter로 추가)">
+  <div class="card">
+    <input type="text" class="input-main" id="todoInput" placeholder="새로운 할 일 추가...">
     <div class="priority-tabs">
       <button class="priority-tab" onclick="TodoController.selectPriority('high', this)">🔴 높음</button>
       <button class="priority-tab" onclick="TodoController.selectPriority('mid', this)">🟡 중간</button>
       <button class="priority-tab" onclick="TodoController.selectPriority('low', this)">🟢 낮음</button>
     </div>
-    <input type="date" id="dueDateInput">
-    <p id="dateError" style="color:#ff5252; font-size:12px; margin-top:-6px; margin-bottom:8px; display:none;">오늘 이후 날짜를 선택해주세요</p>
-    <button class="add-btn" onclick="TodoController.addTodo()">+ 추가하기</button>
+    <input type="date" class="input-date" id="dueDateInput">
+    <p class="date-error" id="dateError">오늘 이후 날짜를 선택해주세요</p>
+    <button class="add-btn" onclick="TodoController.addTodo()">추가하기</button>
   </div>
 
   <!-- 필터 + 정렬 -->
-  <div class="control-box">
-    <div class="filter-box">
-      <button class="active" onclick="TodoController.filterTodos('all', this)">전체</button>
-      <button onclick="TodoController.filterTodos('active', this)">진행중</button>
-      <button onclick="TodoController.filterTodos('completed', this)">완료</button>
-      <button onclick="TodoController.filterTodos('today', this)">📅 오늘</button>
-    </div>
-    <div class="sort-box">
-      <select onchange="TodoController.sortTodos(this.value)">
-        <option value="default">기본순</option>
-        <option value="priority">우선순위순</option>
-        <option value="dueDate">마감일순</option>
-      </select>
-    </div>
+  <div class="control-row">
+  <div class="filter-tabs">
+  <button class="filter-btn active" onclick="TodoController.filterTodos('all', this)">전체</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('active', this)">진행중</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('completed', this)">완료</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('today', this)">오늘</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('high', this)">🔴</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('mid', this)">🟡</button>
+  <button class="filter-btn" onclick="TodoController.filterTodos('low', this)">🟢</button>
+</div> 
+  </div>
+    <select class="sort-select" onchange="TodoController.sortTodos(this.value)">
+      <option value="default">기본순</option>
+      <option value="priority">우선순위순</option>
+      <option value="dueDate">마감일순</option>
+    </select>
   </div>
 
-  <!-- 일괄 처리 버튼 -->
-  <div class="bulk-box">
-    <button class="btn-bulk-complete" onclick="TodoController.completeAll()">전체 완료 처리</button>
-    <button class="btn-bulk-delete" onclick="TodoController.deleteCompleted()">완료 항목 일괄 삭제</button>
+  <!-- 일괄 처리 -->
+  <div class="bulk-row">
+    <button class="bulk-btn complete" onclick="TodoController.completeAll()">✓ 전체 완료</button>
+    <button class="bulk-btn delete" onclick="TodoController.deleteCompleted()">🗑 완료 삭제</button>
   </div>
 
   <!-- 할일 목록 -->
   <div id="todoList"></div>
+
 </div>
 
 <!-- 수정 모달 -->
-<div class="modal" id="editModal">
-  <div class="modal-box">
-    <h3>할 일 수정</h3>
-    <input type="text" id="editInput" placeholder="할 일 제목">
-    <div class="modal-priority-tabs">
-      <button class="modal-priority-tab" onclick="TodoController.selectEditPriority('high', this)">🔴 높음</button>
-      <button class="modal-priority-tab" onclick="TodoController.selectEditPriority('mid', this)">🟡 중간</button>
-      <button class="modal-priority-tab" onclick="TodoController.selectEditPriority('low', this)">🟢 낮음</button>
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-title">할 일 수정</div>
+    <input type="text" class="modal-input" id="editInput" placeholder="할 일 제목">
+    <div class="priority-tabs" id="editPriorityTabs">
+      <button class="priority-tab" onclick="TodoController.selectEditPriority('high', this)">🔴 높음</button>
+      <button class="priority-tab" onclick="TodoController.selectEditPriority('mid', this)">🟡 중간</button>
+      <button class="priority-tab" onclick="TodoController.selectEditPriority('low', this)">🟢 낮음</button>
     </div>
-    <input type="date" id="editDueDate">
-    <div class="modal-buttons">
-      <button class="btn-cancel" onclick="TodoController.closeModal()">취소</button>
-      <button class="btn-save" onclick="TodoController.saveEdit()">저장</button>
+    <input type="date" class="modal-date" id="editDueDate">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="TodoController.closeModal()">취소</button>
+      <button class="modal-btn save" onclick="TodoController.saveEdit()">저장</button>
     </div>
   </div>
 </div>
 
 <script>
-  // ── Model: 데이터 관리 (CRUD, 필터, 정렬) ──────────────────
+  // ── Model ──────────────────────────────────────────────────
   const TodoModel = {
     todos: JSON.parse(localStorage.getItem('todos') || '[]'),
 
-    // localStorage에 저장
-    save() {
-      localStorage.setItem('todos', JSON.stringify(this.todos));
-    },
+    save() { localStorage.setItem('todos', JSON.stringify(this.todos)); },
 
-    // 할일 추가
     add(title, priority, dueDate) {
-      this.todos.push({
-        id: Date.now(),
-        title,
-        priority,
-        dueDate,
-        completed: false,
-        createdAt: new Date().toISOString()
-      });
+      this.todos.push({ id: Date.now(), title, priority, dueDate, completed: false, createdAt: new Date().toISOString() });
       this.save();
     },
 
-    // 할일 삭제
-    delete(id) {
-      this.todos = this.todos.filter(function(t) { return t.id !== id; });
-      this.save();
-    },
+    delete(id) { this.todos = this.todos.filter(function(t) { return t.id !== id; }); this.save(); },
+    deleteCompleted() { this.todos = this.todos.filter(function(t) { return !t.completed; }); this.save(); },
 
-    // 완료 항목 일괄 삭제
-    deleteCompleted() {
-      this.todos = this.todos.filter(function(t) { return !t.completed; });
-      this.save();
-    },
-
-    // 완료 상태 토글
     toggle(id) {
-      const todo = this.todos.find(function(t) { return t.id === id; });
-      if (todo) {
-        todo.completed = !todo.completed;
-        this.save();
-      }
+      const t = this.todos.find(function(t) { return t.id === id; });
+      if (t) { t.completed = !t.completed; this.save(); }
     },
 
-    // 할일 수정
     update(id, title, priority, dueDate) {
-      const todo = this.todos.find(function(t) { return t.id === id; });
-      if (todo) {
-        todo.title = title;
-        todo.priority = priority;
-        todo.dueDate = dueDate;
-        this.save();
-      }
+      const t = this.todos.find(function(t) { return t.id === id; });
+      if (t) { t.title = title; t.priority = priority; t.dueDate = dueDate; this.save(); }
     },
 
-    // 상태별 필터링
     filter(type) {
       if (type === 'active') return this.todos.filter(function(t) { return !t.completed; });
       if (type === 'completed') return this.todos.filter(function(t) { return t.completed; });
-      if (type === 'today') {
+if (type === 'today') {
         const today = new Date().toISOString().split('T')[0];
         return this.todos.filter(function(t) { return t.dueDate === today; });
+      }
+      if (type === 'high' || type === 'mid' || type === 'low') {
+        return this.todos.filter(function(t) { return t.priority === type; });
       }
       return this.todos;
     },
 
-    // 정렬
     sort(todos, type) {
-      const priorityOrder = { high: 0, mid: 1, low: 2 };
-      if (type === 'priority') {
-        return todos.slice().sort(function(a, b) {
-          return priorityOrder[a.priority] - priorityOrder[b.priority];
-        });
-      }
-      if (type === 'dueDate') {
-        return todos.slice().sort(function(a, b) {
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return new Date(a.dueDate) - new Date(b.dueDate);
-        });
-      }
+      const p = { high: 0, mid: 1, low: 2 };
+      if (type === 'priority') return todos.slice().sort(function(a, b) { return p[a.priority] - p[b.priority]; });
+      if (type === 'dueDate') return todos.slice().sort(function(a, b) {
+        if (!a.dueDate) return 1; if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
       return todos;
     },
 
-    // 마감 초과 여부 확인
     isOverdue(dueDate) {
       if (!dueDate) return false;
-      const due = new Date(dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return due < today;
+      const today = new Date(); today.setHours(0,0,0,0);
+      return new Date(dueDate) < today;
     },
 
-    // 통계 계산
     getStats() {
       return {
         total: this.todos.length,
@@ -299,159 +543,113 @@
     }
   };
 
-  // ── View: 화면 렌더링 ──────────────────────────────────────
+  // ── View ───────────────────────────────────────────────────
   const TodoView = {
     currentFilter: 'all',
     currentSort: 'default',
 
-    // 전체 렌더링
-    render() {
-      this.renderStats();
-      this.renderList();
-    },
+    render() { this.renderStats(); this.renderList(); },
 
-    // 통계 업데이트
     renderStats() {
-      const stats = TodoModel.getStats();
-      document.getElementById('statTotal').textContent = stats.total;
-      document.getElementById('statActive').textContent = stats.active;
-      document.getElementById('statCompleted').textContent = stats.completed;
+      const s = TodoModel.getStats();
+      document.getElementById('statTotal').textContent = s.total;
+      document.getElementById('statActive').textContent = s.active;
+      document.getElementById('statCompleted').textContent = s.completed;
     },
 
-    // 할일 목록 렌더링
     renderList() {
       const list = document.getElementById('todoList');
-      let todos = TodoModel.filter(this.currentFilter);
-      todos = TodoModel.sort(todos, this.currentSort);
+      let todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
 
-      if (todos.length === 0) {
-        list.innerHTML = '<div class="empty">할 일이 없어요 🎉</div>';
+      if (!todos.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">할 일이 없어요</div><div class="empty-sub">새로운 할 일을 추가해보세요</div></div>';
         return;
       }
 
       list.innerHTML = todos.map(function(todo) {
         const overdue = !todo.completed && TodoModel.isOverdue(todo.dueDate);
-        const priorityText = todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음';
-        return '<div class="todo-item ' + (todo.completed ? 'completed' : '') + ' ' + (overdue ? 'overdue' : '') + '">' +
-          '<input type="checkbox" ' + (todo.completed ? 'checked' : '') + ' onchange="TodoController.toggleTodo(' + todo.id + ')">' +
-          '<span class="todo-title">' + todo.title + '</span>' +
-          '<span class="badge ' + todo.priority + '">' + priorityText + '</span>' +
-          (todo.dueDate ? '<span class="due-date ' + (overdue ? 'overdue' : '') + '">📅 ' + todo.dueDate + (overdue ? ' ⚠️ 마감초과' : '') + '</span>' : '') +
-          '<button class="btn-edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +
-          '<button class="btn-delete" onclick="TodoController.deleteTodo(' + todo.id + ')">삭제</button>' +
-          '</div>';
+        return '<div class="todo-card ' + (todo.completed ? 'completed' : '') + ' ' + (overdue ? 'overdue' : '') + '">' +
+          '<div class="todo-check ' + (todo.completed ? 'checked' : '') + '" onclick="TodoController.toggleTodo(' + todo.id + ')"></div>' +
+          '<div class="todo-content">' +
+            '<span class="todo-title-text">' + todo.title + '</span>' +
+            '<div class="todo-meta">' +
+'<span class="priority-badge ' + todo.priority + '">' + (todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음') + '</span>' +              (todo.dueDate ? '<span class="meta-text ' + (overdue ? 'overdue' : '') + '">📅 ' + todo.dueDate + (overdue ? ' 마감초과' : '') + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="todo-actions">' +
+            '<button class="action-btn edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +
+            '<button class="action-btn delete" onclick="TodoController.deleteTodo(' + todo.id + ')">삭제</button>' +
+          '</div>' +
+        '</div>';
       }).join('');
     }
   };
 
-  // ── Controller: 사용자 입력 처리 ───────────────────────────
+  // ── Controller ─────────────────────────────────────────────
   const TodoController = {
     editingId: null,
     selectedPriority: 'mid',
     selectedEditPriority: 'mid',
 
-    // 우선순위 탭 선택
     selectPriority(priority, btn) {
       this.selectedPriority = priority;
-      document.querySelectorAll('.priority-tab').forEach(function(b) {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
+      document.querySelectorAll('.card .priority-tab').forEach(function(b) { b.classList.remove('active-high','active-mid','active-low'); });
       btn.classList.add('active-' + priority);
     },
 
-    // 수정 모달 우선순위 탭 선택
     selectEditPriority(priority, btn) {
       this.selectedEditPriority = priority;
-      document.querySelectorAll('.modal-priority-tab').forEach(function(b) {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
+      document.querySelectorAll('#editPriorityTabs .priority-tab').forEach(function(b) { b.classList.remove('active-high','active-mid','active-low'); });
       btn.classList.add('active-' + priority);
     },
 
-    // 할일 추가
     addTodo() {
       const input = document.getElementById('todoInput');
       const title = input.value.trim();
-
-      // 빈 입력 검사
-      if (!title) {
-        input.classList.add('error');
-        setTimeout(function() { input.classList.remove('error'); }, 1500);
-        return;
-      }
-
-      // 날짜 유효성 검사 (모바일 iOS min 속성 미적용 대응)
+      if (!title) { input.classList.add('error'); setTimeout(function() { input.classList.remove('error'); }, 1500); return; }
       const dueDate = document.getElementById('dueDateInput').value;
       if (dueDate) {
         const today = new Date().toISOString().split('T')[0];
         if (dueDate < today) {
           document.getElementById('dateError').style.display = 'block';
-          setTimeout(function() {
-            document.getElementById('dateError').style.display = 'none';
-          }, 2000);
+          setTimeout(function() { document.getElementById('dateError').style.display = 'none'; }, 2000);
           return;
         }
       }
-      document.getElementById('dateError').style.display = 'none';
-
       TodoModel.add(title, this.selectedPriority, dueDate);
       input.value = '';
       document.getElementById('dueDateInput').value = new Date().toISOString().split('T')[0];
       TodoView.render();
     },
 
-    // 할일 삭제
-    deleteTodo(id) {
-      if (confirm('정말 삭제할까요?')) {
-        TodoModel.delete(id);
-        TodoView.render();
-      }
-    },
+    deleteTodo(id) { if (confirm('삭제할까요?')) { TodoModel.delete(id); TodoView.render(); } },
 
-    // 완료 항목 일괄 삭제
     deleteCompleted() {
-      const count = TodoModel.todos.filter(function(t) { return t.completed; }).length;
-      if (count === 0) { alert('완료된 항목이 없어요!'); return; }
-      if (confirm('완료된 항목 ' + count + '개를 삭제할까요?')) {
-        TodoModel.deleteCompleted();
-        TodoView.render();
-      }
+      const n = TodoModel.todos.filter(function(t) { return t.completed; }).length;
+      if (!n) { alert('완료된 항목이 없어요!'); return; }
+      if (confirm(n + '개 항목을 삭제할까요?')) { TodoModel.deleteCompleted(); TodoView.render(); }
     },
 
-    // 전체 완료 처리
     completeAll() {
-      const active = TodoModel.todos.filter(function(t) { return !t.completed; }).length;
-      if (active === 0) { alert('모두 완료된 상태예요!'); return; }
-      if (confirm('미완료 항목 ' + active + '개를 모두 완료 처리할까요?')) {
+      const n = TodoModel.todos.filter(function(t) { return !t.completed; }).length;
+      if (!n) { alert('모두 완료된 상태예요!'); return; }
+      if (confirm(n + '개 항목을 완료 처리할까요?')) {
         TodoModel.todos.forEach(function(t) { t.completed = true; });
-        TodoModel.save();
-        TodoView.render();
+        TodoModel.save(); TodoView.render();
       }
     },
 
-    // 완료 상태 토글
-    toggleTodo(id) {
-      TodoModel.toggle(id);
-      TodoView.render();
-    },
+    toggleTodo(id) { TodoModel.toggle(id); TodoView.render(); },
 
-    // 필터 변경
     filterTodos(type, btn) {
-      document.querySelectorAll('.filter-box button').forEach(function(b) {
-        b.classList.remove('active');
-      });
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       TodoView.currentFilter = type;
       TodoView.render();
     },
 
-    // 정렬 변경
-    sortTodos(type) {
-      TodoView.currentSort = type;
-      TodoView.render();
-    },
+    sortTodos(type) { TodoView.currentSort = type; TodoView.render(); },
 
-    // 수정 모달 열기
     openEdit(id) {
       const todo = TodoModel.todos.find(function(t) { return t.id === id; });
       if (!todo) return;
@@ -459,80 +657,45 @@
       this.selectedEditPriority = todo.priority;
       document.getElementById('editInput').value = todo.title;
       document.getElementById('editDueDate').value = todo.dueDate || '';
-      document.querySelectorAll('.modal-priority-tab').forEach(function(b) {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
-      const priorityIndex = { high: 0, mid: 1, low: 2 };
-      document.querySelectorAll('.modal-priority-tab')[priorityIndex[todo.priority]].classList.add('active-' + todo.priority);
+      document.querySelectorAll('#editPriorityTabs .priority-tab').forEach(function(b) { b.classList.remove('active-high','active-mid','active-low'); });
+      var idx = { high: 0, mid: 1, low: 2 };
+      document.querySelectorAll('#editPriorityTabs .priority-tab')[idx[todo.priority]].classList.add('active-' + todo.priority);
       document.getElementById('editModal').classList.add('show');
     },
 
-    // 수정 모달 닫기
-    closeModal() {
-      document.getElementById('editModal').classList.remove('show');
-      this.editingId = null;
-    },
+    closeModal() { document.getElementById('editModal').classList.remove('show'); this.editingId = null; },
 
-    // 수정 저장
     saveEdit() {
       const title = document.getElementById('editInput').value.trim();
       if (!title) { alert('할 일을 입력해주세요!'); return; }
-      TodoModel.update(
-        this.editingId,
-        title,
-        this.selectedEditPriority,
-        document.getElementById('editDueDate').value
-      );
-      this.closeModal();
-      TodoView.render();
+      TodoModel.update(this.editingId, title, this.selectedEditPriority, document.getElementById('editDueDate').value);
+      this.closeModal(); TodoView.render();
     },
 
-    // 다크모드 토글
     toggleDark() {
       document.body.classList.toggle('dark');
       const isDark = document.body.classList.contains('dark');
       localStorage.setItem('darkMode', isDark);
-      const btn = document.getElementById('darkBtn');
-      if (isDark) {
-        btn.textContent = '☀️ 라이트모드';
-        btn.style.background = '#16213e';
-        btn.style.color = '#e0e0e0';
-        btn.style.borderColor = '#444';
-      } else {
-        btn.textContent = '🌙 다크모드';
-        btn.style.background = 'white';
-        btn.style.color = '#333';
-        btn.style.borderColor = '#ddd';
-      }
+      document.getElementById('darkBtn').textContent = isDark ? '☀️' : '🌙';
     }
   };
 
   // ── 초기화 ─────────────────────────────────────────────────
+  TodoController.selectPriority('mid', document.querySelectorAll('.card .priority-tab')[1]);
 
-  // 중간 우선순위 기본 선택
-  TodoController.selectPriority('mid', document.querySelectorAll('.priority-tab')[1]);
-
-  // 엔터키로 할일 추가
   document.getElementById('todoInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') TodoController.addTodo();
   });
 
-  // 오늘 날짜를 최소값 및 기본값으로 설정
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('dueDateInput').min = today;
   document.getElementById('dueDateInput').value = today;
 
-  // 다크모드 상태 복원
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
-    const btn = document.getElementById('darkBtn');
-    btn.textContent = '☀️ 라이트모드';
-    btn.style.background = '#16213e';
-    btn.style.color = '#e0e0e0';
-    btn.style.borderColor = '#444';
+    document.getElementById('darkBtn').textContent = '☀️';
   }
 
-  // 초기 렌더링
   TodoView.render();
 </script>
 </body>
