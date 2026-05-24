@@ -488,7 +488,7 @@ body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border
     save() { localStorage.setItem('todos', JSON.stringify(this.todos)); },
 
     add(title, priority, dueDate) {
-      this.todos.push({ id: Date.now(), title, priority, dueDate, completed: false, createdAt: new Date().toISOString() });
+      this.todos.unshift({ id: Date.now(), title, priority, dueDate, completed: false, createdAt: new Date().toISOString() });
       this.save();
     },
 
