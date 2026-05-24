@@ -606,8 +606,12 @@ if (type === 'today') {
     addTodo() {
       const input = document.getElementById('todoInput');
       const title = input.value.trim();
-      if (!title) { input.classList.add('error'); setTimeout(function() { input.classList.remove('error'); }, 1500); return; }
-      const dueDate = document.getElementById('dueDateInput').value;
+if (!title) {
+  alert('할 일을 입력해주세요!');
+  input.classList.add('error');
+  setTimeout(function() { input.classList.remove('error'); }, 1500);
+  return;
+}      const dueDate = document.getElementById('dueDateInput').value;
       if (dueDate) {
         const today = new Date().toISOString().split('T')[0];
         if (dueDate < today) {
