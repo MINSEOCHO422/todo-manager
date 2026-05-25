@@ -428,7 +428,7 @@ body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border
       <button class="priority-tab" onclick="TodoController.selectPriority('low', this)">🟢 낮음</button>
     </div>
     <input type="date" class="input-date" id="dueDateInput">
-    <p class="date-error" id="dateError">오늘 이후 날짜를 선택해주세요</p>
+    <p class="date-error" id="dateError">오늘 날짜부터 선택해주세요</p>
     <button class="add-btn" onclick="TodoController.addTodo()">추가하기</button>
   </div>
 
@@ -611,12 +611,16 @@ if (!title) {
   input.classList.add('error');
   setTimeout(function() { input.classList.remove('error'); }, 1500);
   return;
-}      const dueDate = document.getElementById('dueDateInput').value;
+}     const dueDate = document.getElementById('dueDateInput').value;
       if (dueDate) {
         const today = new Date().toISOString().split('T')[0];
         if (dueDate < today) {
+  const todayStr = new Date().toLocaleDateString('ko-KR', {year: 'numeric', month: '2-digit', day: '2-digit'});
+          alert(todayStr + ' 이후 날짜를 선택해주세요!');
           document.getElementById('dateError').style.display = 'block';
-          setTimeout(function() { document.getElementById('dateError').style.display = 'none'; }, 2000);
+          setTimeout(function() {
+            document.getElementById('dateError').style.display = 'none';
+          }, 2000);
           return;
         }
       }
