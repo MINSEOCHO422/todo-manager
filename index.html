@@ -137,7 +137,9 @@ body.dark .stat-num.green { color: #30d158; }
 
     /* ── 날짜 입력 ── */
     .input-date {
-      width: 100%;
+   width: 100%;
+      max-width: 100%;
+      -webkit-appearance: none;
       padding: 10px 14px;
       border: 1.5px solid #e5e5e7;
       border-radius: 10px;
@@ -549,9 +551,11 @@ if (type === 'today') {
   };
 
   // ── View ───────────────────────────────────────────────────
-  const TodoView = {
+const TodoView = {
     currentFilter: 'all',
     currentSort: 'default',
+    currentPage: 1,
+    itemsPerPage: 10,
 
     render() { this.renderStats(); this.renderList(); },
 
@@ -565,6 +569,11 @@ if (type === 'today') {
     renderList() {
       const list = document.getElementById('todoList');
       let todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
+
+const totalPages = Math.ceil(todos.length / this.itemsPerPage);
+      if (this.currentPage > totalPages) this.currentPage = 1;
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const paginated = todos.slice(start, start + this.itemsPerPage);
 
 if (!todos.length) {
         const messages = {
@@ -581,7 +590,7 @@ if (!todos.length) {
         return;
       }
 
-      list.innerHTML = todos.map(function(todo) {
+      list.innerHTML = paginated.map(function(todo) {
         const overdue = !todo.completed && TodoModel.isOverdue(todo.dueDate);
         return '<div class="todo-card ' + (todo.completed ? 'completed' : '') + ' ' + (overdue ? 'overdue' : '') + '">' +
           '<div class="todo-check ' + (todo.completed ? 'checked' : '') + '" onclick="TodoController.toggleTodo(' + todo.id + ')"></div>' +
