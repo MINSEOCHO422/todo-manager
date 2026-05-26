@@ -376,11 +376,7 @@ body.dark .priority-badge.low { background: #1a3a1a; color: #30d158; }
     .modal-btn.cancel { background: #f2f2f7; color: #1a1a1a; }
     .modal-btn.save { background: #007aff; color: white; }
     body.dark .modal-btn.cancel { background: #2c2c2e; color: #f0f0f0; }
-body.dark .action-btn.edit { background: #1c3a5a; color: #0a84ff; }
-body.dark .action-btn.delete { background: #3a1a1a; color: #ff453a; }
-body.dark .bulk-btn.complete { background: #1a3a1a; color: #30d158; }
-body.dark .bulk-btn.delete { background: #3a1a1a; color: #ff453a; }
-    body.dark .priority-tab { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
+body.dark .priority-tab { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
 body.dark .priority-tab.active-high { background: #3a1a1a; color: #ff453a; border-color: #ff453a; }
 body.dark .priority-tab.active-mid { background: #3a2a1a; color: #ff9f0a; border-color: #ff9f0a; }
 body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border-color: #30d158; }
@@ -477,6 +473,7 @@ body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border
       <button class="priority-tab" onclick="TodoController.selectEditPriority('mid', this)">🟡 중간</button>
       <button class="priority-tab" onclick="TodoController.selectEditPriority('low', this)">🟢 낮음</button>
     </div>
+    <input type="date" class="modal-date" id="editDueDate">
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="TodoController.closeModal()">취소</button>
       <button class="modal-btn save" onclick="TodoController.saveEdit()">저장</button>
@@ -548,18 +545,10 @@ if (type === 'today') {
   };
 
   // ── View ───────────────────────────────────────────────────
-const TodoView = {
+  const TodoView = {
     currentFilter: 'all',
     currentSort: 'default',
-    currentPage: 1,
-    itemsPerPage: 10,
-    changePage(page) {
-      const todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
-      const totalPages = Math.ceil(todos.length / this.itemsPerPage);
-      if (page < 1 || page > totalPages) return;
-      this.currentPage = page;
-      this.renderList();
-    },
+
     render() { this.renderStats(); this.renderList(); },
 
     renderStats() {
@@ -572,11 +561,6 @@ const TodoView = {
     renderList() {
       const list = document.getElementById('todoList');
       let todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
-
-const totalPages = Math.ceil(todos.length / this.itemsPerPage);
-      if (this.currentPage > totalPages) this.currentPage = 1;
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const paginated = todos.slice(start, start + this.itemsPerPage);
 
 if (!todos.length) {
         const messages = {
@@ -593,7 +577,7 @@ if (!todos.length) {
         return;
       }
 
-      list.innerHTML = paginated.map(function(todo) {
+      list.innerHTML = todos.map(function(todo) {
         const overdue = !todo.completed && TodoModel.isOverdue(todo.dueDate);
         return '<div class="todo-card ' + (todo.completed ? 'completed' : '') + ' ' + (overdue ? 'overdue' : '') + '">' +
           '<div class="todo-check ' + (todo.completed ? 'checked' : '') + '" onclick="TodoController.toggleTodo(' + todo.id + ')"></div>' +
@@ -609,16 +593,6 @@ if (!todos.length) {
           '</div>' +
         '</div>';
       }).join('');
-      if (totalPages > 1) {
-        let pagination = '<div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:16px;">';
-        pagination += '<button onclick="TodoView.changePage(' + (this.currentPage - 1) + ')" style="padding:6px 12px; border:1.5px solid #e5e5e7; border-radius:8px; background:white; cursor:pointer; font-size:13px;" ' + (this.currentPage === 1 ? 'disabled' : '') + '>이전</button>';
-        for (let i = 1; i <= totalPages; i++) {
-          pagination += '<button onclick="TodoView.changePage(' + i + ')" style="padding:6px 12px; border:1.5px solid ' + (i === this.currentPage ? '#007aff' : '#e5e5e7') + '; border-radius:8px; background:' + (i === this.currentPage ? '#007aff' : 'white') + '; color:' + (i === this.currentPage ? 'white' : '#1a1a1a') + '; cursor:pointer; font-size:13px;">' + i + '</button>';
-        }
-        pagination += '<button onclick="TodoView.changePage(' + (this.currentPage + 1) + ')" style="padding:6px 12px; border:1.5px solid #e5e5e7; border-radius:8px; background:white; cursor:pointer; font-size:13px;" ' + (this.currentPage === totalPages ? 'disabled' : '') + '>다음</button>';
-        pagination += '</div>';
-        list.innerHTML += pagination;
-      }
     }
   };
 
@@ -713,8 +687,7 @@ if (!title) {
     saveEdit() {
       const title = document.getElementById('editInput').value.trim();
       if (!title) { alert('할 일을 입력해주세요!'); return; }
-const todo = TodoModel.todos.find(function(t) { return t.id === TodoController.editingId; });
-TodoModel.update(this.editingId, title, this.selectedEditPriority, todo ? todo.dueDate : '');
+      TodoModel.update(this.editingId, title, this.selectedEditPriority, document.getElementById('editDueDate').value);
       this.closeModal(); TodoView.render();
     },
 
@@ -741,7 +714,7 @@ TodoModel.update(this.editingId, title, this.selectedEditPriority, todo ? todo.d
     document.body.classList.add('dark');
     document.getElementById('darkBtn').textContent = '☀️';
   }
-  
+
   TodoView.render();
 </script>
 </body>
