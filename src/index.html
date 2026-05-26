@@ -473,7 +473,6 @@ body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border
       <button class="priority-tab" onclick="TodoController.selectEditPriority('mid', this)">🟡 중간</button>
       <button class="priority-tab" onclick="TodoController.selectEditPriority('low', this)">🟢 낮음</button>
     </div>
-    <input type="date" class="modal-date" id="editDueDate">
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="TodoController.closeModal()">취소</button>
       <button class="modal-btn save" onclick="TodoController.saveEdit()">저장</button>
@@ -687,7 +686,8 @@ if (!title) {
     saveEdit() {
       const title = document.getElementById('editInput').value.trim();
       if (!title) { alert('할 일을 입력해주세요!'); return; }
-      TodoModel.update(this.editingId, title, this.selectedEditPriority, document.getElementById('editDueDate').value);
+const todo = TodoModel.todos.find(function(t) { return t.id === TodoController.editingId; });
+TodoModel.update(this.editingId, title, this.selectedEditPriority, todo ? todo.dueDate : '');
       this.closeModal(); TodoView.render();
     },
 
