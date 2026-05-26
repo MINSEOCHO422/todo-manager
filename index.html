@@ -20,6 +20,9 @@
     body.dark .card { background: #1c1c1e; border-color: #2c2c2e; }
     body.dark input, body.dark select { background: #2c2c2e; color: #f0f0f0; border-color: #3a3a3c; }
     body.dark .priority-tab { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
+    body.dark .priority-tab.active-high { background: #3a1a1a; color: #ff453a; border-color: #ff453a; }
+    body.dark .priority-tab.active-mid { background: #3a2a1a; color: #ff9f0a; border-color: #ff9f0a; }
+    body.dark .priority-tab.active-low { background: #1a3a1a; color: #30d158; border-color: #30d158; }
     body.dark .filter-btn { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
     body.dark .filter-btn.active { background: #f0f0f0; color: #1a1a1a; border-color: #f0f0f0; }
     body.dark .todo-card { background: #1c1c1e; border-color: #2c2c2e; }
@@ -37,10 +40,10 @@
     body.dark .bulk-btn.complete { background: #1a3a1a; color: #30d158; }
     body.dark .bulk-btn.delete { background: #3a1a1a; color: #ff453a; }
     body.dark h1 { color: #f0f0f0; }
-    body.dark .section-title { color: #aeaeb2; }
     body.dark .multi-row { background: #2c2c2e; border-color: #3a3a3c; }
     body.dark .multi-input { background: #1c1c1e; color: #f0f0f0; border-color: #3a3a3c; }
     body.dark .multi-date { background: #1c1c1e; color: #f0f0f0; border-color: #3a3a3c; }
+    body.dark .search-input { background: #1c1c1e; color: #f0f0f0; border-color: #3a3a3c; }
 
     @media (max-width: 480px) {
       body { padding: 16px 12px; }
@@ -50,8 +53,9 @@
       .control-row { flex-direction: column; gap: 8px; align-items: flex-start; }
       .bulk-row { flex-direction: column; }
       .bulk-btn { width: 100%; text-align: center; }
-      .multi-row { flex-wrap: wrap; }
+      .multi-row { flex-wrap: wrap; gap: 6px; }
       .multi-input { width: 100% !important; }
+      .multi-date { width: 100% !important; }
     }
 
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -73,23 +77,11 @@
 
     .card { background: white; border-radius: 16px; border: 1.5px solid #f0f0f0; padding: 16px; margin-bottom: 12px; }
 
-    /* ── 단일 입력 폼 ── */
-    .single-form { display: flex; flex-direction: column; gap: 10px; }
-    .input-main { width: 100%; padding: 12px 14px; border: 1.5px solid #e5e5e7; border-radius: 10px; font-size: 15px; outline: none; background: white; transition: border-color 0.2s; font-family: inherit; }
-    .input-main:focus { border-color: #007aff; }
-    .input-main.error { border-color: #ff3b30; }
-    .input-date { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e5e7; border-radius: 10px; font-size: 14px; outline: none; background: white; font-family: inherit; color: #1a1a1a; transition: border-color 0.2s; }
-    .input-date:focus { border-color: #007aff; }
-    .date-error { color: #ff3b30; font-size: 12px; display: none; }
-    .add-btn { width: 100%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; font-family: inherit; }
-    .add-btn:hover { background: #0066d6; }
-
-    /* ── 폼 탭 전환 ── */
-    .form-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-    .form-tab { flex: 1; padding: 8px; border: 1.5px solid #e5e5e7; border-radius: 10px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; text-align: center; font-family: inherit; color: #8e8e93; transition: all 0.15s; }
-    .form-tab.active { border-color: #007aff; background: #f0f7ff; color: #007aff; font-weight: 600; }
-    body.dark .form-tab { background: #2c2c2e; color: #aeaeb2; border-color: #3a3a3c; }
-    body.dark .form-tab.active { background: #1c3a5a; color: #0a84ff; border-color: #0a84ff; }
+    /* ── 검색 ── */
+    .search-wrap { position: relative; margin-bottom: 12px; }
+    .search-input { width: 100%; padding: 10px 14px 10px 36px; border: 1.5px solid #e5e5e7; border-radius: 10px; font-size: 14px; outline: none; background: white; font-family: inherit; transition: border-color 0.2s; }
+    .search-input:focus { border-color: #007aff; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8e8e93; font-size: 14px; pointer-events: none; }
 
     /* ── 다중 입력 폼 ── */
     .multi-form { display: flex; flex-direction: column; gap: 8px; }
@@ -102,12 +94,11 @@
     .multi-p-btn.active-mid { border-color: #ff9500; background: #fff8f0; }
     .multi-p-btn.active-low { border-color: #34c759; background: #f0fff4; }
     .multi-date { padding: 7px 8px; border: 1.5px solid #e5e5e7; border-radius: 8px; font-size: 12px; outline: none; background: white; font-family: inherit; color: #1a1a1a; width: 130px; }
+    .multi-add-btn { width: 26px; height: 26px; border: none; border-radius: 50%; background: #007aff; color: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .multi-remove { width: 26px; height: 26px; border: none; border-radius: 50%; background: #ff3b30; color: white; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .multi-add-row { display: flex; gap: 8px; margin-top: 4px; }
-    .multi-add-btn { padding: 8px 14px; border: 1.5px dashed #e5e5e7; border-radius: 8px; background: white; cursor: pointer; font-size: 13px; color: #8e8e93; font-family: inherit; transition: all 0.15s; }
-    .multi-add-btn:hover { border-color: #007aff; color: #007aff; }
-    body.dark .multi-add-btn { background: #2c2c2e; border-color: #3a3a3c; color: #aeaeb2; }
-    .multi-submit-btn { flex: 1; padding: 8px; background: #007aff; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .submit-btn { width: 100%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 4px; transition: background 0.2s; }
+    .submit-btn:hover { background: #0066d6; }
+    .date-error { color: #ff3b30; font-size: 12px; display: none; margin-top: -4px; }
 
     /* ── 우선순위 탭 ── */
     .priority-tabs { display: flex; gap: 6px; }
@@ -200,32 +191,15 @@
 
   <!-- 입력 폼 -->
   <div class="card">
-    <div class="form-tabs">
-      <button class="form-tab active" onclick="TodoController.switchForm('single', this)">단일 추가</button>
-      <button class="form-tab" onclick="TodoController.switchForm('multi', this)">여러개 추가</button>
-    </div>
+    <div id="multiRows" class="multi-form"></div>
+    <p class="date-error" id="dateError">오늘 날짜부터 선택해주세요</p>
+    <button class="submit-btn" onclick="TodoController.submitAll()">추가하기</button>
+  </div>
 
-    <!-- 단일 추가 -->
-    <div id="singleForm" class="single-form">
-      <input type="text" class="input-main" id="todoInput" placeholder="새로운 할 일 추가...">
-      <div class="priority-tabs" id="singlePriorityTabs">
-        <button class="priority-tab" onclick="TodoController.selectPriority('high', this)">🔴 높음</button>
-        <button class="priority-tab" onclick="TodoController.selectPriority('mid', this)">🟡 중간</button>
-        <button class="priority-tab" onclick="TodoController.selectPriority('low', this)">🟢 낮음</button>
-      </div>
-      <input type="date" class="input-date" id="dueDateInput">
-      <p class="date-error" id="dateError">오늘 날짜부터 선택해주세요</p>
-      <button class="add-btn" onclick="TodoController.addTodo()">추가하기</button>
-    </div>
-
-    <!-- 여러개 추가 -->
-    <div id="multiForm" style="display:none;">
-      <div id="multiRows" class="multi-form"></div>
-      <div class="multi-add-row">
-        <button class="multi-add-btn" onclick="TodoController.addMultiRow()">+ 항목 추가</button>
-        <button class="multi-submit-btn" onclick="TodoController.submitMulti()">일괄 등록</button>
-      </div>
-    </div>
+  <!-- 검색 -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="할 일 검색...">
   </div>
 
   <div class="control-row">
@@ -253,6 +227,7 @@
   <div id="todoList"></div>
 </div>
 
+<!-- 수정 모달 -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-card">
     <div class="modal-title">할 일 수정</div>
@@ -295,17 +270,21 @@
       if (t) { t.title = title; t.priority = priority; t.dueDate = dueDate; this.save(); }
     },
 
-    filter(type) {
-      if (type === 'active') return this.todos.filter(function(t) { return !t.completed; });
-      if (type === 'completed') return this.todos.filter(function(t) { return t.completed; });
-      if (type === 'today') {
+    filter(type, keyword) {
+      let todos = this.todos;
+      if (type === 'active') todos = todos.filter(function(t) { return !t.completed; });
+      else if (type === 'completed') todos = todos.filter(function(t) { return t.completed; });
+      else if (type === 'today') {
         const today = new Date().toISOString().split('T')[0];
-        return this.todos.filter(function(t) { return t.dueDate === today; });
+        todos = todos.filter(function(t) { return t.dueDate === today; });
+      } else if (type === 'high' || type === 'mid' || type === 'low') {
+        todos = todos.filter(function(t) { return t.priority === type; });
       }
-      if (type === 'high' || type === 'mid' || type === 'low') {
-        return this.todos.filter(function(t) { return t.priority === type; });
+      if (keyword && keyword.trim()) {
+        const kw = keyword.trim().toLowerCase();
+        todos = todos.filter(function(t) { return t.title.toLowerCase().indexOf(kw) !== -1; });
       }
-      return this.todos;
+      return todos;
     },
 
     sort(todos, type) {
@@ -341,7 +320,8 @@
     itemsPerPage: 10,
 
     changePage(page) {
-      const todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
+      const keyword = document.getElementById('searchInput').value;
+      const todos = TodoModel.sort(TodoModel.filter(this.currentFilter, keyword), this.currentSort);
       const totalPages = Math.ceil(todos.length / this.itemsPerPage);
       if (page < 1 || page > totalPages) return;
       this.currentPage = page;
@@ -359,7 +339,8 @@
 
     renderList() {
       const list = document.getElementById('todoList');
-      let todos = TodoModel.sort(TodoModel.filter(this.currentFilter), this.currentSort);
+      const keyword = document.getElementById('searchInput').value;
+      let todos = TodoModel.sort(TodoModel.filter(this.currentFilter, keyword), this.currentSort);
 
       const totalPages = Math.ceil(todos.length / this.itemsPerPage);
       if (this.currentPage > totalPages) this.currentPage = 1;
@@ -377,7 +358,7 @@
           low: { icon: '🟢', text: '낮음 우선순위 할 일이 없어요', sub: '우선순위를 낮음으로 설정해보세요' }
         };
         const msg = messages[this.currentFilter] || messages['all'];
-        list.innerHTML = '<div class="empty-state"><div class="empty-icon">' + msg.icon + '</div><div class="empty-text">' + msg.text + '</div><div class="empty-sub">' + msg.sub + '</div></div>';
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">' + msg.icon + '</div><div class="empty-text">' + (keyword ? '"' + keyword + '" 검색 결과가 없어요' : msg.text) + '</div><div class="empty-sub">' + msg.sub + '</div></div>';
         return;
       }
 
@@ -416,76 +397,76 @@
   // ── Controller ─────────────────────────────────────────────
   const TodoController = {
     editingId: null,
-    selectedPriority: 'mid',
     selectedEditPriority: 'mid',
-    currentForm: 'single',
-    multiRows: [],
+    rows: [],
 
-    switchForm(type, btn) {
-      this.currentForm = type;
-      document.querySelectorAll('.form-tab').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      document.getElementById('singleForm').style.display = type === 'single' ? 'flex' : 'none';
-      document.getElementById('multiForm').style.display = type === 'multi' ? 'block' : 'none';
-      if (type === 'multi' && this.multiRows.length === 0) {
-        this.addMultiRow();
-        this.addMultiRow();
-      }
+    init() {
+      this.rows = [];
+      this.addRow();
     },
 
-    addMultiRow() {
-      if (this.multiRows.length >= 5) { alert('최대 5개까지 추가할 수 있어요!'); return; }
+    addRow(afterId) {
+      if (this.rows.length >= 5) { alert('최대 5개까지 추가할 수 있어요!'); return; }
       const id = Date.now();
       const today = new Date().toISOString().split('T')[0];
-      this.multiRows.push({ id, priority: 'mid' });
-      this.renderMultiRows();
+      const newRow = { id, priority: 'mid', date: today };
+      if (afterId) {
+        const idx = this.rows.findIndex(function(r) { return r.id === afterId; });
+        this.rows.splice(idx + 1, 0, newRow);
+      } else {
+        this.rows.push(newRow);
+      }
+      this.renderRows();
     },
 
-    removeMultiRow(id) {
-      if (this.multiRows.length <= 1) { alert('최소 1개는 있어야 해요!'); return; }
-      this.multiRows = this.multiRows.filter(function(r) { return r.id !== id; });
-      this.renderMultiRows();
+    removeRow(id) {
+      if (this.rows.length <= 1) { alert('최소 1개는 있어야 해요!'); return; }
+      this.rows = this.rows.filter(function(r) { return r.id !== id; });
+      this.renderRows();
     },
 
-    setMultiPriority(id, priority) {
-      const row = this.multiRows.find(function(r) { return r.id === id; });
+    setRowPriority(id, priority) {
+      const row = this.rows.find(function(r) { return r.id === id; });
       if (row) row.priority = priority;
-      this.renderMultiRows();
+      this.renderRows();
     },
 
-    renderMultiRows() {
+    renderRows() {
       const today = new Date().toISOString().split('T')[0];
       const container = document.getElementById('multiRows');
-      const self = this;
-      container.innerHTML = this.multiRows.map(function(row) {
+      const isLast = function(idx) { return idx === TodoController.rows.length - 1; };
+
+      container.innerHTML = this.rows.map(function(row, idx) {
+        const placeholder = isLast(idx) ? '할 일 입력... (Enter키로 등록)' : '할 일 입력...';
         return '<div class="multi-row" id="row-' + row.id + '">' +
-          '<input type="text" class="multi-input" id="multi-title-' + row.id + '" placeholder="할 일 입력...">' +
+          '<input type="text" class="multi-input" id="multi-title-' + row.id + '" placeholder="' + placeholder + '">' +
           '<div class="multi-priority">' +
-            '<button class="multi-p-btn ' + (row.priority === 'high' ? 'active-high' : '') + '" onclick="TodoController.setMultiPriority(' + row.id + ', \'high\')">🔴</button>' +
-            '<button class="multi-p-btn ' + (row.priority === 'mid' ? 'active-mid' : '') + '" onclick="TodoController.setMultiPriority(' + row.id + ', \'mid\')">🟡</button>' +
-            '<button class="multi-p-btn ' + (row.priority === 'low' ? 'active-low' : '') + '" onclick="TodoController.setMultiPriority(' + row.id + ', \'low\')">🟢</button>' +
+            '<button class="multi-p-btn ' + (row.priority === 'high' ? 'active-high' : '') + '" onclick="TodoController.setRowPriority(' + row.id + ', \'high\')">🔴</button>' +
+            '<button class="multi-p-btn ' + (row.priority === 'mid' ? 'active-mid' : '') + '" onclick="TodoController.setRowPriority(' + row.id + ', \'mid\')">🟡</button>' +
+            '<button class="multi-p-btn ' + (row.priority === 'low' ? 'active-low' : '') + '" onclick="TodoController.setRowPriority(' + row.id + ', \'low\')">🟢</button>' +
           '</div>' +
           '<input type="date" class="multi-date" id="multi-date-' + row.id + '" value="' + today + '" min="' + today + '">' +
-          '<button class="multi-remove" onclick="TodoController.removeMultiRow(' + row.id + ')">×</button>' +
+          '<button class="multi-add-btn" onclick="TodoController.addRow(' + row.id + ')" title="아래에 추가">+</button>' +
+          '<button class="multi-remove" onclick="TodoController.removeRow(' + row.id + ')" title="삭제">×</button>' +
         '</div>';
       }).join('');
 
-      // 마지막 입력창에서 엔터키로 일괄 등록
-      const lastRow = this.multiRows[this.multiRows.length - 1];
+      // 마지막 행 엔터키로 일괄 등록
+      const lastRow = this.rows[this.rows.length - 1];
       if (lastRow) {
         const lastInput = document.getElementById('multi-title-' + lastRow.id);
         if (lastInput) {
           lastInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') TodoController.submitMulti();
+            if (e.key === 'Enter') TodoController.submitAll();
           });
         }
       }
     },
 
-    submitMulti() {
-      let added = 0;
+    submitAll() {
       const today = new Date().toISOString().split('T')[0];
-      this.multiRows.forEach(function(row) {
+      let added = 0;
+      this.rows.forEach(function(row) {
         const titleEl = document.getElementById('multi-title-' + row.id);
         const dateEl = document.getElementById('multi-date-' + row.id);
         if (!titleEl) return;
@@ -496,18 +477,8 @@
         added++;
       });
       if (added === 0) { alert('할 일을 입력해주세요!'); return; }
-      this.multiRows = [];
-      this.addMultiRow();
-      this.addMultiRow();
+      TodoController.init();
       TodoView.render();
-    },
-
-    selectPriority(priority, btn) {
-      this.selectedPriority = priority;
-      document.querySelectorAll('#singlePriorityTabs .priority-tab').forEach(function(b) {
-        b.classList.remove('active-high', 'active-mid', 'active-low');
-      });
-      btn.classList.add('active-' + priority);
     },
 
     selectEditPriority(priority, btn) {
@@ -516,30 +487,6 @@
         b.classList.remove('active-high', 'active-mid', 'active-low');
       });
       btn.classList.add('active-' + priority);
-    },
-
-    addTodo() {
-      const input = document.getElementById('todoInput');
-      const title = input.value.trim();
-      if (!title) {
-        alert('할 일을 입력해주세요!');
-        input.classList.add('error');
-        setTimeout(function() { input.classList.remove('error'); }, 1500);
-        return;
-      }
-      const dueDate = document.getElementById('dueDateInput').value;
-      if (dueDate) {
-        const today = new Date().toISOString().split('T')[0];
-        if (dueDate < today) {
-          const todayStr = new Date().toLocaleDateString('ko-KR', {year: 'numeric', month: '2-digit', day: '2-digit'});
-          alert(todayStr + ' 날짜부터 선택해주세요!');
-          return;
-        }
-      }
-      TodoModel.add(title, this.selectedPriority, dueDate);
-      input.value = '';
-      document.getElementById('dueDateInput').value = new Date().toISOString().split('T')[0];
-      TodoView.render();
     },
 
     deleteTodo(id) { if (confirm('삭제할까요?')) { TodoModel.delete(id); TodoView.render(); } },
@@ -606,15 +553,12 @@
   };
 
   // ── 초기화 ─────────────────────────────────────────────────
-  TodoController.selectPriority('mid', document.querySelectorAll('#singlePriorityTabs .priority-tab')[1]);
+  TodoController.init();
 
-  document.getElementById('todoInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') TodoController.addTodo();
+  document.getElementById('searchInput').addEventListener('input', function() {
+    TodoView.currentPage = 1;
+    TodoView.render();
   });
-
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('dueDateInput').min = today;
-  document.getElementById('dueDateInput').value = today;
 
   if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark');
