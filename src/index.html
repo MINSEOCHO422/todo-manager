@@ -212,7 +212,7 @@
       <button class="filter-btn" onclick="TodoController.filterTodos('low', this)">🟢</button>
     </div>
     <select class="sort-select" onchange="TodoController.sortTodos(this.value)">
-      <option value="default">기본순</option>
+      <option value="default">최신순</option>
       <option value="priority">우선순위순</option>
       <option value="dueDate">마감일순</option>
     </select>
@@ -438,7 +438,7 @@
       container.innerHTML = this.rows.map(function(row, idx) {
         const placeholder = isLast(idx) ? '할 일 입력... (Enter키로 등록)' : '할 일 입력...';
         return '<div class="multi-row" id="row-' + row.id + '">' +
-          '<input type="text" class="multi-input" id="multi-title-' + row.id + '" placeholder="' + placeholder + '">' +
+          '<input type="text" class="multi-input" id="multi-title-' + row.id + '" maxlength="50" placeholder="' + placeholder + '">' +
           '<div class="multi-priority">' +
             '<button class="multi-p-btn ' + (row.priority === 'high' ? 'active-high' : '') + '" onclick="TodoController.setRowPriority(' + row.id + ', \'high\')">🔴</button>' +
             '<button class="multi-p-btn ' + (row.priority === 'mid' ? 'active-mid' : '') + '" onclick="TodoController.setRowPriority(' + row.id + ', \'mid\')">🟡</button>' +
