@@ -89,10 +89,11 @@
     .multi-input { flex: 1; padding: 8px 12px; border: 1.5px solid #e5e5e7; border-radius: 8px; font-size: 14px; outline: none; background: white; font-family: inherit; min-width: 0; transition: border-color 0.2s; }
     .multi-input:focus { border-color: #007aff; }
     .multi-priority { display: flex; gap: 3px; }
-.multi-p-btn { width: 28px; height: 28px; border: 1.5px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }    .multi-p-btn.active-high { border-color: #ff3b30; background: #fff2f0; }
-    .multi-p-btn.active-mid { border-color: #ff9500; background: #fff8f0; }
-    .multi-p-btn.active-low { border-color: #34c759; background: #f0fff4; }
-    .multi-date { padding: 7px 8px; border: 1.5px solid #e5e5e7; border-radius: 8px; font-size: 12px; outline: none; background: white; font-family: inherit; color: #1a1a1a; width: 130px; }
+.multi-p-btn { width: 28px; height: 28px; border: 1.5px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }    
+.multi-p-btn.active-high { border-color: #ff3b30; background: #ff3b30; }
+.multi-p-btn.active-mid { border-color: #ff9500; background: #ff9500; }
+.multi-p-btn.active-low { border-color: #34c759; background: #34c759; }
+ .multi-date { padding: 7px 8px; border: 1.5px solid #e5e5e7; border-radius: 8px; font-size: 12px; outline: none; background: white; font-family: inherit; color: #1a1a1a; width: 130px; }
     .multi-add-btn { width: 26px; height: 26px; border: none; border-radius: 50%; background: #007aff; color: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .multi-remove { width: 26px; height: 26px; border: none; border-radius: 50%; background: #ff3b30; color: white; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .submit-btn { width: 100%; padding: 12px; background: #007aff; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 4px; transition: background 0.2s; }
@@ -400,7 +401,6 @@ body.dark .action-btn.done-active { background: #30d158; color: white; }
         const overdue = !todo.completed && TodoModel.isOverdue(todo.dueDate);
         const priorityText = todo.priority === 'high' ? '높음' : todo.priority === 'mid' ? '중간' : '낮음';
         return '<div class="todo-card ' + (todo.completed ? 'completed' : '') + ' ' + (overdue ? 'overdue' : '') + '">' +
-          '<div class="todo-check ' + (todo.completed ? 'checked' : '') + '" onclick="TodoController.toggleTodo(' + todo.id + ')"></div>' +
           '<div class="todo-content">' +
             '<span class="todo-title-text">' + todo.title + '</span>' +
             '<div class="todo-meta">' +
@@ -410,8 +410,8 @@ body.dark .action-btn.done-active { background: #30d158; color: white; }
           '</div>' +
           '<div class="todo-actions">' +
 '<button class="action-btn ' + (todo.completed ? 'done-active' : 'done') + '" onclick="TodoController.toggleTodo(' + todo.id + ')">' + (todo.completed ? '✓완료' : '완료') + '</button>' +
-'<button class="action-btn ' + (todo.completed ? 'done-active' : 'done') + '" onclick="TodoController.toggleTodo(' + todo.id + ')">' + (todo.completed ? '✓완료' : '완료') + '</button>' +
-'<button class="action-btn edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +          '</div>' +
+'<button class="action-btn edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +
+'<button class="action-btn delete" onclick="TodoController.deleteTodo(' + todo.id + ')">삭제</button>' +
         '</div>';
       }).join('');
 
