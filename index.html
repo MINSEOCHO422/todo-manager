@@ -144,6 +144,10 @@
     .action-btn { padding: 5px 10px; border-radius: 7px; border: none; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
     .action-btn:hover { opacity: 0.8; }
     .action-btn.edit { background: #f0f4ff; color: #007aff; }
+    .action-btn.done { background: #f0fff4; color: #34c759; }
+.action-btn.done-active { background: #34c759; color: white; }
+body.dark .action-btn.done { background: #1a3a1a; color: #30d158; }
+body.dark .action-btn.done-active { background: #30d158; color: white; }
     .action-btn.delete { background: #fff2f0; color: #ff3b30; }
     .empty-state { text-align: center; padding: 48px 0; color: #8e8e93; }
     .empty-icon { font-size: 40px; margin-bottom: 8px; }
@@ -249,7 +253,7 @@
       <p><b>기타</b></p>
       <p>· 🌙 버튼으로 다크모드 전환</p>
       <p>· 마감일 지난 항목은 빨간색으로 표시</p>
-      <p>· 데이터는 브라우저에 자동 저장</p>
+      <p>· 데이터는 브라우저별 자동 저장</p>
     </div>
     <div class="modal-btns" style="margin-top:16px;">
       <button class="modal-btn save" onclick="TodoController.closeHelp()">확인</button>
@@ -405,9 +409,9 @@
             '</div>' +
           '</div>' +
           '<div class="todo-actions">' +
-            '<button class="action-btn edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +
-            '<button class="action-btn delete" onclick="TodoController.deleteTodo(' + todo.id + ')">삭제</button>' +
-          '</div>' +
+'<button class="action-btn ' + (todo.completed ? 'done-active' : 'done') + '" onclick="TodoController.toggleTodo(' + todo.id + ')">' + (todo.completed ? '✓완료' : '완료') + '</button>' +
+'<button class="action-btn ' + (todo.completed ? 'done-active' : 'done') + '" onclick="TodoController.toggleTodo(' + todo.id + ')">' + (todo.completed ? '✓완료' : '완료') + '</button>' +
+'<button class="action-btn edit" onclick="TodoController.openEdit(' + todo.id + ')">수정</button>' +          '</div>' +
         '</div>';
       }).join('');
 
