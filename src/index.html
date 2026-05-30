@@ -168,11 +168,13 @@
 <body>
 <div class="container">
 
-  <div class="header">
+<div class="header">
     <span class="app-title">할 일</span>
-    <button class="dark-btn" id="darkBtn" onclick="TodoController.toggleDark()">🌙</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="dark-btn" onclick="TodoController.showHelp()" style="font-size:14px;">?</button>
+      <button class="dark-btn" id="darkBtn" onclick="TodoController.toggleDark()">🌙</button>
+    </div>
   </div>
-
   <div class="stats">
     <div class="stat-card">
       <div class="stat-num" id="statTotal">0</div>
@@ -224,6 +226,35 @@
   </div>
 
   <div id="todoList"></div>
+</div>
+
+<!-- 도움말 모달 -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-card">
+    <div class="modal-title">📝 사용 방법</div>
+    <div style="font-size:14px; line-height:1.8; color:#1a1a1a;">
+      <p><b>할 일 추가</b></p>
+      <p>· 입력창에 할 일 입력 후 Enter 또는 추가하기 버튼</p>
+      <p>· + 버튼으로 여러 개 동시 추가 (최대 5개)</p>
+      <br>
+      <p><b>우선순위</b></p>
+      <p>· 🔴 높음 / 🟡 중간 / 🟢 낮음 선택</p>
+      <br>
+      <p><b>필터</b></p>
+      <p>· 전체 / 진행중 / 완료 / 오늘 / 우선순위별 필터</p>
+      <br>
+      <p><b>검색</b></p>
+      <p>· 검색창에 키워드 입력하면 실시간 검색</p>
+      <br>
+      <p><b>기타</b></p>
+      <p>· 🌙 버튼으로 다크모드 전환</p>
+      <p>· 마감일 지난 항목은 빨간색으로 표시</p>
+      <p>· 데이터는 브라우저에 자동 저장</p>
+    </div>
+    <div class="modal-btns" style="margin-top:16px;">
+      <button class="modal-btn save" onclick="TodoController.closeHelp()">확인</button>
+    </div>
+  </div>
 </div>
 
 <!-- 수정 모달 -->
@@ -548,8 +579,20 @@
       const isDark = document.body.classList.contains('dark');
       localStorage.setItem('darkMode', isDark);
       document.getElementById('darkBtn').textContent = isDark ? '☀️' : '🌙';
-    }
+    },
+
+showHelp() {
+  document.getElementById('helpModal').classList.add('show');
+},
+
+closeHelp() {
+  document.getElementById('helpModal').classList.remove('show');
+  localStorage.setItem('helpShown', 'true');
+},
+
   };
+
+  
 
   // ── 초기화 ─────────────────────────────────────────────────
   TodoController.init();
@@ -563,6 +606,11 @@
     document.body.classList.add('dark');
     document.getElementById('darkBtn').textContent = '☀️';
   }
+
+  // 최초 방문 시 도움말 표시
+if (!localStorage.getItem('helpShown')) {
+  TodoController.showHelp();
+}
 
   TodoView.render();
 </script>
